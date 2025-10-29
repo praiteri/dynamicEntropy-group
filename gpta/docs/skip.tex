@@ -1,0 +1,38 @@
+\subsubsection{Skiping Frames}
+\index[action]{Skiping Frames}
+\index[command]{--skip}
+
+Alternative to the selection of frames with the \emph{--frames} command it is possible to just specify the stride at which the frames have to be processed.
+The first frame is always processed.
+This is mostly a legacy command and it will probably be removed in the future.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--skip [N]} \\
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb traj.dcd --skip 7
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{Verbatim}
+...
+_________________________________________________________________________________________________________
+First frame to process.............................:           1
+Last frame to process..............................:  2147483647
+Stride for processing frames.......................:           7
+_________________________________________________________________________________________________________
+...
+\end{Verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

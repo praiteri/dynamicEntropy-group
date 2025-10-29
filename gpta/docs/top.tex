@@ -1,0 +1,90 @@
+\subsubsection{Molecular Connectivity and Topology}
+\index[action]{Molecular Connectivity and Topology}
+\index[command]{--top}
+
+This action computes the atoms' connectivity and molecular topology of the system.
+Although strictly speaking this action does not change the atomic coordinates, it is often a pre-requisite for most of the actions discussed in this and the following sections.
+By default the topology is determined using a distance criterion for the definition of the covalent bonds.
+Two atoms are considered bonded if
+\[
+r_{ij} < R_s(r^{cov}_i + r^{cov}_j)
+\]
+where $r_{ij}$ is the distance between species $i$ and $j$, $r^{cov}$ is the covalent radius of the element as defined in the \verb|elementsModule.F90| file and $R_s$ is a scaling factor set to 1.15.
+The scaling factor and special bond lengths can be specified with the \emph{--define} command.
+
+Alternatively, the molecular composition of the system can be defined by providing the list of atoms' names in each molecules.
+Each molecule is defined by a comma separated list of atoms, and the atoms must be in the same order as they appear in the coordinates file.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--top}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+ion [list of species]}\\
+  ensures that no covalent bond in created with the listed species.
+
+\emph{+def [molecule1] [molecule2] \dots}\\
+  with this flag the topology is not built from the neighbours list but simply using the atoms' labels.
+  Each molecule has to be given as an individual argument, with the atoms belonging to each molecule provided in a comma separated list.
+  All molecules in the input file(s) must have the atoms in the same order as they appear on the command line to be correctly identified.
+
+\emph{+update}\\
+  forces the topology the be updated at every frame.
+  Using this flag drastically reduces the performances of the code.
+
+\emph{+rebuild}\\
+  forces the molecule that are broken across the PBC to be rebuilt.
+
+\emph{+check}\\
+  checks if any molecules are broken across the PBC and rebuilds them
+
+\emph{+reorder}\\
+  asks for the atoms in the system to be reordered and grouped by molecule.
+  The program will also attempt to recognise equivalent molecule's types where the atoms are simply in different order.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --top
+gpta.x --i coord.pdb --top +ion Na Cl
+gpta.x --i coord.pdb --top +def Ca O,H,H
+gpta.x --i coord.pdb --top +update
+gpta.x --i coord.pdb --top +rebuild
+gpta.x --i coord.pdb --top +reorder
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Topology information
+...Number of molecules found...............................:         520
+...Number of unique molecules found........................:           2
+....Molecule type M1
+......Number of molecules..................................:           1
+......Concentration [M]....................................:      0.1081
+......Number of atoms in molecule..........................:           1
+......Atoms types in molecule..............................: Ca
+......Number of atoms in molecule..........................:           1
+......Molecular charge.....................................:      0.0000
+....Molecule type M2
+......Number of molecules..................................:         519
+......Concentration [M]....................................:     56.0923
+......Number of atoms in molecule..........................:           3
+......Atoms types in molecule..............................: O2,H2,H2
+......Number of atoms in molecule..........................:           3
+......Molecular charge.....................................:      0.0000
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

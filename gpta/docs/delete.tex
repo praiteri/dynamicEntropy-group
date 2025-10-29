@@ -1,0 +1,62 @@
+\subsubsection{Delete Atoms}
+\index[action]{Delete Atoms}
+\index[command]{--delete}
+
+This action deletes the selected atoms from the input configuration.
+The atoms to be removed can be selected either by their label (\emph{+s}), their indices (\emph{+i}) or by the type of molecule they belong to (\emph{+mol}).
+Mixed selections, \emph{e.g.} based on labels and indices, should be possible within one command, but the command can also be repeated.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--delete}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+s [species]} or \emph{+i [indices]} or \emph{+mol [molecule name]}\\
+  selects the species to be deleted using the atoms' names or their indices or the name of the molecules they belong to.
+  The species selection is done by providing a comma separated list of atom names.
+  The index selection can be done by providing a comma separated list of indices or in loop format B:E:(S), where the stride is optional.
+  The \emph{+mol} flag requires \emph{--top} flag, and the molecules are seleceted using the names given to them by the \emph{--top} command.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --delete +s O
+gpta.x --i coord.pdb --delete +s O,H
+gpta.x --i coord.pdb --delete +i 1:30
+gpta.x --i coord.pdb --delete +i 1:30:3
+gpta.x --i coord.pdb --delete +i 1,34,6789
+gpta.x --i coord.pdb --top --delete +mol M2
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Removing atoms
+...Atoms selected by label.........................: Na
+...Deleting selected atoms
+_________________________________________________________________________________________________________
+...
+_________________________________________________________________________________________________________
+Topology information
+...
+....Molecule type M2
+...
+_________________________________________________________________________________________________________
+Removing atoms
+...Atoms selected by molecule......................: M2
+...Deleting selected atoms
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

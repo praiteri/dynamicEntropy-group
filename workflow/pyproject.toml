@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project]
+name = "workflow"
+version = "0.1.0"
+requires-python = ">= 3.12"
+authors = [
+  {name = "Paolo Raiteri", email = "p.raiteri@curtin.edu.au"},
+]
+
+description = "forcefield conversion tools"
+license = {file = "LICENSE"}
+readme = {file = "README.md", content-type = "text/markdown"}
+
+dependencies = [
+    "colorama",
+    "numpy",
+    "scipy",
+    "pandas",
+    "chempy",
+    "matplotlib",
+    "alive_progress",
+]
+
+[project.scripts]
+run_script = "workflow.run_script:main"
+read_lmp = "workflow.read_lmp:main"
+lmpgen = "workflow.lmpgen:main"
+ti_analysis = "workflow.ti_analysis:main"
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "mypy",
+    "pylint",
+] 

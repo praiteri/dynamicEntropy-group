@@ -1,0 +1,605 @@
+\documentclass[10pt]{article}   	% use "amsart" instead of "article" for AMSLaTeX format
+\usepackage{geometry}               % See geometry.pdf to learn the layout options. There are lots.
+\geometry{
+  a4paper,
+  left=30mm,
+  right=20mm,
+  top=20mm,
+  bottom=20mm,
+}                  % ... or a4paper or a5paper or ... 
+%\geometry{landscape}               % Activate for rotated page geometry
+\usepackage[parfill]{parskip}    	% Activate to begin paragraphs with an empty line rather than an indent
+
+\usepackage{graphicx}				% Use pdf, png, jpg, or eps§ with pdflatex; use eps in DVI mode
+
+\usepackage{amssymb}
+
+\usepackage{fancyvrb}
+
+\usepackage{enumitem} % to indent itemized list
+
+\usepackage[linkcolor=blue]{hyperref} % Required to create hyperlinks to questions from elsewhere in the document
+\hypersetup{pdfborder={0 0 0}, colorlinks=true, urlcolor=blue} % Specify a color for hyperlinks
+\usepackage{microtype} % Slightly tweak font spacing for aesthetics
+\DisableLigatures[-]{}
+
+\usepackage{imakeidx}
+\usepackage[columns=1]{idxlayout}
+\makeindex[name=action,title={List of Actions}]
+\makeindex[name=command,title={List of Commands}]
+
+\usepackage{dashrule}
+
+% Start sections on a new page
+%\let\stdsection\section
+%\renewcommand\section{\newpage\stdsection}
+
+\title{General Purpose Trajectory Analyser (GPTA) \\ User Manual}
+\author{Paolo Raiteri}
+%\date{}							% Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+\begin{abstract}
+The General Purpose Trajectory Analyser (GPTA) is a program that I developed over the years to perform routine day-to-day tasks required for my research as a computational materials scientist.
+In particular, my main research tool is Molecular Dynamics simulations and I use GPTA on a daily basis to prepare the input structure and analyse the output trajectories.
+The tasks that GPTA is able to perform can be broadly divided into two categories; manipulation of the coordinates of individual structures and post processing of (large) trajectory files.
+Although GPTA has been rewritten multiple times, there are some legacy routines and there are some inconsistencies in style and appearance of the routines.
+It is provided here in the hope that it may be useful to others.
+\end{abstract}
+\newpage
+\tableofcontents
+\newpage
+
+\section*{Disclaimer of Warranty}
+  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+\section*{Limitation of Liability}
+  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
+USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
+DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
+EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
+
+\section*{Contacts}
+If you want to report a bug please email include a detailed description of the problem you encounter to
+\verb|gpta.help@gmail.com|.
+Please also include the command you used and a small coordinates file to reproduce to error.
+
+Although you are not required to do so, the author would consider it a courtesy if you submit to them any changes you regard as being worthwhile adding to the code.
+The goal would be to keep the development of GPTA more or less centralized.
+
+\section{Obtaining and Installing the Program}
+GPTA can be downloaded from github (https://github.com/praiteri/GPTA).
+It is composed of a combination of FORTRAN and C/C++ files, hence it requires compatible C and FORTRAN compilers.
+
+In the GPTA root directory there is Makefile, which should work as is on a standard Linux installation with the \emph{gfortran} and \emph{gcc} compilers.
+However, it should be relatively easy to modify it and adapt it for other operating systems and compilers.
+
+In the simplest of cases, GPTA can be compiled by simply running
+\begin{Verbatim}[fontsize=\footnotesize,frame=single]
+make serial
+\end{Verbatim}
+
+in the GPTA folder.
+The executable will be placed in a folder called \verb|bin|, which will be created if required.
+In order to compile GPTA with the MPI parallelisation enabled one can simply run
+\begin{Verbatim}[fontsize=\footnotesize,frame=single]
+make mpi
+\end{Verbatim}
+
+this will create a new folder for the MPI object files, \verb|obj_mpi|, and an executable named \verb|gpta_mpi.x|.
+Other actions available through the Makefile are
+\begin{Verbatim}[fontsize=\footnotesize,frame=single]
+make clean     # deletes the serial object filess
+make clean-mpi # deletes the MPI object files
+make clean-all # deletes all object files
+make distclean # deletes all object files and executables
+\end{Verbatim}
+
+The compilation of GPTA can be tailored by using command line variables, which are also used to link GPTA to external libraries, such as PLUMED and openMM. 
+\begin{Verbatim}[fontsize=\footnotesize,frame=single]
+make omp=n     # disables openMP parallisation
+make dbg=y     # compiles GPTA in debug mode
+make plumed=y  # enables the interface with PLUMED
+make openmm=y  # enables the interface with openMM
+make cuda=y    # enables the interface with openMM for GPU
+\end{Verbatim}
+
+\subsection{GPTA doesn't work for my problem, what should I do?}
+For any moderately experienced programmer it should be easy enough to modify the code to implement a new type of property analysis or pre-processing tool.
+To make this task a bit easier, there is a sample routine \verb|test.F90| where there is an alternative, albeit slower, implementation of the radial pair distribution function, where some of the core processing routines that are available in GPTA.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Main structure of the code}
+Before getting into the details of what GPTA can (and cannot) do, it is worth having a brief look at the core parts of the code, namely the calculation of the neighbours' list, the use of periodic boundary conditions and parallelisation.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Periodic Boundary Conditions}
+Although the most common, and tested, scenario where GPTA is used it to pre/post process coordinates from 3D periodic MD simulation, it should also work for non-periodic (cluster) calculations.
+In order to efficiently calculate the distances with periodic boundary conditions GPTA uses the standard approach to transform the distances in fractional coordinates using the metric matrix and its inverse,  \verb|hmat| and \verb|hinv|, respectively
+\begin{verbatim}
+    dij = pos(:,i) - pos(:,j)
+    sij = matmul(hinv , dij)
+    sij = sij - nint(sij)
+    dij = matmul(hmat , sij)
+    distance = sqrt(sum(dij*dij))
+\end{verbatim}
+The \verb|matmul| function is in-lined by the compiler when the \verb|-O3| option is used, which makes its use as efficient as explicitly writing the matrix-vector multiplication.
+Moreover, to further speed up the calculation, for orthorhombic cells the above routine is replaced by one where only the diagonal elements of the metric tensor, \verb|cell| are used
+\begin{verbatim}
+    dij(1:3) = pos(1:3,i) - pos(1:3,j)
+    sij(1) = dij(1) / cell(1)
+    sij(2) = dij(2) / cell(2)
+    sij(3) = dij(3) / cell(3)
+    sij = sij - nint(sij)
+    dij(1) = sij(1) * cell(1)
+    dij(2) = sij(2) * cell(2)
+    dij(3) = sij(3) * cell(3)
+    distance = sum(dij*dij)
+\end{verbatim}
+
+Although these methods for calculating distances with periodic boundary conditions are very efficient, they are also known to fail for small and skewed cells. 
+Hence, it is possible to force GPTA to use search for the shortest distances between two atoms by looking at all possible distances between one atom and the 27 images of its neighbour and taking the shortest one, which indeed is the definition of ``minimum image convention''.
+\begin{verbatim}
+    dij(1:3) = pos(1:3,i) - pos(1:3,j)
+    distance = sum(dij*dij)
+    lsafe_pbc_vec = dij
+    do i=-1,1
+      do j=-1,1
+        do k=-1,1
+          if (i==0 .and. j==0 .and. k==0) cycle
+          sij = dij + i*hmat(:,1) + j*hmat(:,2) + k*hmat(:,3)
+          rtmp = sum(sij*sij)
+          if (rtmp < distance) then
+            distance = rtmp
+            lsafe_pbc_vec = sij
+          end if
+        enddo
+      enddo
+    enddo
+    distance = sqrt(distance)
+\end{verbatim}
+
+This approach would however be extremely slow and unnecessary for large systems.
+Its use can however enforced using the \emph{--define safedist} command and it could be useful for debugging purposes and very small systems. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Neigbours' List}
+GPTA has three algorithms to compute the neighbours' list, and it attempts to select the optimal one depending on the system size and cutoff distance for the list
+\begin{itemize}
+\item The standard ``Verlet'' method with a double look over the atoms
+\item The the ``linked cell`` algorithm, with ghost cells added around the system to avoid applying PBC while computing the distances.
+\item The ``linked cell`` algorithm, where the atoms' positions are projected onto the vector connecting the cells centres to reduce the number of distance calculations. This method requires sorting the projections and it is generally slower for short cutoff distances.
+\end{itemize}
+Although, the ``linked cell method'' is significantly faster than the `` Verlet'' method, it is possible to force GPTA to use it by using the \emph{--define verlet} command.
+Information about the chosen algorithm is provided in the screen output.
+
+\begin{scriptsize}
+\begin{verbatim}
+...
+________________________________________________________________________________________________________________________
+Neighbours' list setup
+...Algorithm...............................................: Linked Cell Sorting
+......Number of cells......................................: 100 100 292
+...Double list.............................................:       FALSE
+...Cutoff radius...........................................:      3.0000
+...Maximum number of neighbours............................:          16
+________________________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Timing}
+At the end of each run GPTA provides some information about the time spent in the calculations.
+It also provides a breakdown of the time spent in each action, plus the time spent in the calculations of the neighbours' list.
+The number in square brackets indicates the number of times the neighbours' list has been calculated.
+
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Frames processing summary
+...Number of frames read...........................:          20
+...Number of frames processed......................:          11
+_________________________________________________________________________________________________________
+Timing summary (seconds)
+...Initialisation time.............................:      0.0189
+...Total reading time..............................:      0.0561
+...Total time in actions...........................:      0.7550
+......Total time in --test.........................:      0.7550
+...Neighbours list time [n=11].....................:      0.2575
+Total elapsed time.................................:      1.0900
+_________________________________________________________________________________________________________
+\end{verbatim}
+\end{scriptsize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Parallelisation}
+GPTA supports two levels of parallelisation, with openMP and MPI.
+The former is turned on by default and it is used mainly to speed up the calculation of the neighbours' list, which is the bottleneck for most calculations.
+MPI is instead used to distribute the processing of the trajectory frames across the available CPUs.
+In this case, the master CPU reads all the frames from the trajectory files and distributes them to the other CPUs for processing.
+If less than 5 CPUs are used the ``reading'' node also processes one frame itself, otherwise it is just used to distribute the frames to the ``working'' nodes.
+Hence, this type of parallelisation if beneficial only if the number of frames to be processed is large compared to the number of CPUs used and if the processing time is shorter compared to the reading time, which may not be the case for large system where the coordinates are written in ASCII format rather than binary.
+At the moment only the actions that compute properties support MPI parallelisation, and no output of modified coordinates is allowed.
+There are a number of actions that work in parallel but, as mentioned above, this provides a significant speed up only if the reading time is significantly shorter than the processing time. 
+A few actions, such as the radial pair distribution function, have a small level of openMP parallelisation.
+However, as mentioned before, in the majority of cases the calculation of the interatomic distances, \emph{i.e.} the neighbours' list, is the rate limiting step.
+Here below you can see a couple of graphs of the time required to compute the neighbours's list for different cutoff radii and different number of CPUs on a 32 cores node with a total of 64 hyperthreads.
+The test were done for a 1,000 frames trajectory written in DCD format with 4,180 water molecules.
+\begin{figure}[h!]
+    \includegraphics[width=0.5\textwidth]{scaling/fig_3.png}
+    \includegraphics[width=0.5\textwidth]{scaling/fig_6.png}
+    \includegraphics[width=0.5\textwidth]{scaling/fig_10.png}
+    \includegraphics[width=0.5\textwidth]{scaling/fig_20.png}
+    \caption{
+    Execution time for the calculation of the neighbours' list with different cutoff radii using up to 64 processes and a different combination of openMP threads and MPI processes (circles).
+    The crosses represent the time spent by the code to read the trajectory file.
+    The symbols are coloured based on the number of openMP threads used. In order to make the color scale more readable we used $\log_2(N_{threads})$, \emph{i.e.} the dots for 64 openMP threads are coloured in red while for 1 openMP thread are coloured in purple.
+    The red line connects the points obtained using only the openMP parallelisation.
+    The black lines indicate ideal scaling (solid), 50\% efficiency (dashed) and 25\% efficiency (dotted).
+    }
+\end{figure}
+
+It is clear how the MPI parallelisation is more effective and, since each MPI processes work on a separate frame independently, it should scale almost linearly with the number or processes.
+On the other hand, there is little gain in using more than 8 openMP threads for the calculation of the neighbours' list, and it can actually be detrimental to the performances to use 32 or 64 threads.
+Hence, by default GPTA would use 8 openMP threads when run in serial.
+
+
+Although scaling and performances are affected by the size of the system, MPI would always provide better performances for the calculation of properties.
+openMP is however the only option when manipulating the system coordinates or processing a small number of frames.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\clearpage\newpage
+\section{Commands Description}
+In the following sections we shall provide a description of all the available commands, which have been grouped according to whether they define global parameters for the simulations (setup commands), or they can be used to modify the input coordinates or to compute some system properties.
+Finally there will be a section for the commands that require external packages to be compiles separately, \emph{i.e.} openMM and PLUMED.
+
+First of all it is important to be aware of some general rules about the  input syntax.
+GPTA takes all the instructions from the command line, and the ``actions'' are typically executed sequentially, \emph{i.e.} in the order in which they appear on the command line. 
+Action commands are preceded by a double dash ``--'', while settings and for each action are preceded by a ``+''.
+Actions are generally self-contained objects and they can be repeated multiple times on the command line, \emph{e.g.} to compute the same property for two different groups of atoms.
+Although every effort has been made to make all the actions that change the atoms' properties and positions compatible with each other it is always safer to perform such action at the time, maybe with a batch script.
+Unless otherwise stated, each argument of an action flags should be provided as a comma separated list, this will be more clear by looking at the examples provided below.
+
+In the description of the flags allowed for the available actions we will provide the default value of the flag within square brackets. If no default value is set we will provide a short description of the expected value in brackets, \emph{e.g.} 
+\emph{+rcut [3.0]} or \emph{+f [filename]}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Setup commands}
+In this section we descriribe the commands that are executed only once at the beginning of the job, regardless of where they appear on the command line.
+These commands allow for 
+\begin{itemize}
+\item selecting the number of openMP threads to use
+\item redirecting the screen output to a file
+\item overriding the definition of a few parameters that are used
+\end{itemize}
+
+\input{define}
+
+\subsection{Input, output and frame selection}
+In this section we discuss the commands that can be used to read and write coordinates files, and how it is possible to select which frames to process.
+
+%\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\input{input}
+\input{frames}
+\input{skip}
+\input{last}
+\input{output}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Description of Actions That Modify the System}
+In this section we describe all the actions that manipulate the atomic coordinates.
+All these actions can be used only in with the serial executable or one MPI process.
+
+\input{top}
+\input{add}
+\input{delete}
+\input{pbc}
+\input{fixcom}
+\input{mirror}
+\input{unwrap}
+\input{repl}
+\input{noclash}
+\input{rescale}
+\input{substitute}
+\input{set}
+\input{shift}
+\input{surface}
+\input{fixCell}
+\input{align}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Description of Actions That Compute Properties}
+In this section we describe all the actions that compute properties based on the atomic coordinates.
+Most of these actions can be used with MPI.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\input{dmap1D}
+\input{dmap2D}
+\input{dmap3D}
+\input{solvation}
+\input{extract}
+\input{clusters}
+\input{configurations}
+\input{gofr}
+\input{molprop}
+\input{msd}
+\input{restime}
+\input{xray}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Miscellaneous actions}
+\input{test}
+\input{plumed}
+\input{amoeba}
+%\input{amoeba_full}
+
+\newpage
+\section{Appendix A\\
+Force Field Format for LAMMPS Input Coordinates}
+
+Although there are other several tools available to automatically generate input coordinates files for LAMMPS, such as MOLTEMPLATE (http://www.moltemplate.org), I preferred to have my own tool embedded in the program I use to manipulate and post-process the coordinates files.
+Similar to MOLTEMPLATE, in my workflow I require three files to run a LAMMPS simulation; one file with all the LAMMPS commands (\emph{i.e.} the timestep, ensemble\dots), one file with the force field parameters and one file with the coordinates and connectivity.
+The force field is simply ``included'' in the LAMMPS input script, while the coordinated file is read with the ``read\_data'' command.
+I then use GPTA to read the coordinates file, in any supported format, compute the topology and match it with the force field information to produce the LAMMPS coordinates file.
+However, for GPTA to successfully produce the LAMMPS file some GPTA-specific flags need to be included as comments in the force field parameters file, marked with the ``\#@'' tag, which are ignored by LAMMPS.
+For example
+
+\begin{Verbatim}[fontsize=\footnotesize,frame=single]
+#@ 1 bond types
+#@ O2 - H2
+bond_coeff   1   harmonic   22.965000      1.0120000
+\end{Verbatim}
+means that in the force field there is only one bond type, which is between atoms type O2 and H2.
+Hence, for each O2-H2 bond that GPTA finds in the topology calculation one line is added in the ``Bonds'' section of the LAMMPS coordinates file
+\begin{Verbatim}[fontsize=\footnotesize,frame=single]
+ Bonds
+
+       1       1       1       2
+       2       1       1       3
+       ...
+\end{Verbatim}
+A similar philosophy applies to the angle, dihedral and improper types of interactions.
+
+However, GPTA is not too smart and a few rules needs to be followed while constructing the force field file
+\begin{itemize}
+ \item only the \verb|atom_type full| is supported
+ \item the \verb|xxx_coeff| line must follow the definition of the atoms involved in the intramolecular interaction (\verb|#@ O2 - H2| or \verb|#@ H2 - O2 - H2|)
+ \item the force field coefficient ID must be consecutive and add up to the number of types specified
+ \item for the angle interactions, the central atom is the second in the list
+ \item for the improper interactions the central atom is the first in the list
+ \item for complicated systems, there might not be a unique charge for each van der Waals type. Hence, GPTA can read the atomic charges from a non-standard PDB file while where the atomic partial charges are written after the 80$^\mathrm{th}$ column. In this case the charges will be written in the coordinates file. However, because the coordinates file has to be read before the force field file, any charges defined there will be overridden by the definitions in the force field file.
+\end{itemize}
+Although GPTA tries to catch some errors in the preparation of the force field file, these more often than not become apparent while running a simulation.
+
+
+\newpage
+\subsection{Force Field File for SPC/FW Water}
+\begin{verbatim}
+#################################################################
+# Y. J. Wu, H. L. Tepper, and G. A. Voth
+# J. Chem. Phys., vol. 124, no. 2, p. 024503, 2006.
+#################################################################
+# Global force field settings
+#################################################################
+# Bonded interactions styles
+bond_style hybrid harmonic
+angle_style hybrid harmonic
+
+# Non bonded interactionstyles
+variable rcut equal 9.
+pair_style hybrid lj/cut/coul/long ${rcut}
+
+# LJ tail correction
+pair_modify pair lj/cut/coul/long tail yes
+pair_modify mix arithmetic
+
+# Reciprocal space electrostatics
+kspace_style pppm 1.0e-5
+kspace_modify fftbench no
+
+# 1-4 scaling
+special_bonds lj 0.0 0.0 0.0 coul 0.0 0.0 0.0
+
+#################################################################
+# Force field parameters
+#################################################################
+#@ 2 atom types
+variable O2  equal 1
+variable H2  equal 2
+
+# Atoms' masses
+mass  ${O2}    16.000
+mass  ${H2}     1.010
+
+# Atoms' charges
+set type ${O2}  charge    -0.820000
+set type ${H2}  charge     0.410000
+
+# Covalent bonds parameters
+#@ 1 bond types
+#@ O2 - H2
+bond_coeff   1   harmonic   22.965000      1.0120000
+
+# Covalent angles parameters
+#@ 1 angle types
+#@ H2 - O2 - H2
+angle_coeff   1  harmonic    1.6456800      113.24000
+
+# Non bonded parameters
+pair_coeff  ${O2}  ${O2}  lj/cut/coul/long  0.00674  3.165492
+pair_coeff  ${H2}  ${H2}  lj/cut/coul/long  0.00     1.
+\end{verbatim}
+
+\newpage
+\subsection{Force Field File for CaCO$_3$ and SPC/FW Water}
+\begin{verbatim}
+#################################################################
+# P. Raiteri, R. Demichelis, and J. D. Gale
+# J. Phys. Chem. C, vol. 119, no. 43, pp. 24447-24458, 2015.
+#################################################################
+# Global force field settings
+#################################################################
+# Bonded interactions styles
+bond_style hybrid harmonic
+angle_style hybrid harmonic class2
+#dihedral_style hybrid harmonic
+improper_style hybrid distance
+
+# Non bonded interactionstyles
+variable rmin equal 6.
+variable rmax equal 9.
+variable rcut equal 9.
+pair_style hybrid/overlay coul/long ${rcut} &
+                             lj/cut ${rcut} &
+                           buck/mdf ${rmin} ${rmax} &
+                             lj/mdf ${rmin} ${rmax}
+
+# LJ tail correction - for homogenous systems only
+pair_modify pair lj/cut tail yes
+
+# Reciprocal space electrostatics
+kspace_style pppm 1.0e-5
+kspace_modify fftbench no
+
+# 1-4 scaling
+special_bonds lj 0.0 0.0 0.0 coul 0.0 0.0 0.0
+
+#################################################################
+# Force field parameters
+#################################################################
+#@ 5 atom types
+variable O2  equal 1
+variable H2  equal 2
+variable Ca  equal 3
+variable C4  equal 4
+variable O4  equal 5
+
+# Atoms' masses
+mass  ${O2}    16.000
+mass  ${H2}     1.010
+mass  ${Ca}    40.080
+mass  ${C4}    12.010
+mass  ${O4}    16.000
+
+# Atoms' charges
+set type ${O2}  charge    -0.820000
+set type ${H2}  charge     0.410000
+set type ${Ca}  charge     2.000000
+set type ${C4}  charge     1.123285
+set type ${O4}  charge    -1.041095
+
+# Covalent bonds parameters
+#@ 2 bond types
+#@ O2 - H2
+bond_coeff   1   harmonic   22.965000      1.0120000
+#@ C4 - O4
+bond_coeff   2   harmonic   20.424650      1.3042000
+
+# Covalent angles parameters
+#@ 2 angle types
+#@ H2 - O2 - H2
+angle_coeff   1  harmonic    1.6456800      113.24000
+#@ O4 - C4 - O4
+angle_coeff   2   class2      120.00000      6.6170000      0.0000000      0.0000000
+angle_coeff   2   class2 bb    12.81800      1.3042000      1.3042000
+angle_coeff   2   class2 ba     1.53319      1.5331900      1.3042000      1.3042000
+
+#@ 1 improper types
+#@  C4 - O4 - O4 - O4
+improper_coeff   1     13.647000      360.00000
+
+# Non bonded parameters
+pair_coeff    *      *    coul/long
+pair_coeff  ${O2}  ${O2}     lj/cut      0.00674    3.165492
+pair_coeff  ${O2}  ${Ca}     lj/mdf      0.00095    3.35
+pair_coeff  ${O2}  ${O4}   buck/mdf  12534.455133   0.202        0.
+pair_coeff  ${H2}  ${O4}   buck/mdf    340.         0.217        0.
+pair_coeff  ${Ca}  ${O4}   buck/mdf   3161.6335     0.271511     0.
+pair_coeff  ${O4}  ${O4}   buck/mdf  63840.199      0.198913    27.89901
+\end{verbatim}
+
+\newpage
+\subsection{Minimal LAMMPS input file}
+\begin{verbatim}
+# ------ Units -------------------------------------
+units metal
+
+# ------ Atom Style --------------------------------
+atom_style full
+
+# ------ System Definition -------------------------
+boundary p p p 
+read_data coord.lmp # <-- generated by GPTA
+
+# ------ Force field -------------------------------
+include forcefield.lmp # <-- used by GPTA
+
+# ------ NVE Simulation ----------------------------
+fix md all nve
+timestep 0.001
+thermo 10
+run 100
+\end{verbatim}
+
+
+
+\newpage
+\section{Acknowledgments and credits}
+Here I would like to give credit to various sources from which I have lifted significant chunks of code. I have also made every effort to add the credit lines inside each file, if it was not already present in the original files.
+
+\begin{itemize}
+\item 
+The Mersenne Twister random number generator was taken from\\
+http://www.math.sci.hiroshima-u.ac.jp/~m-mat/MT/emt.html\\
+M. Matsumoto and T. Nishimura\\
+"Mersenne Twister: A 623-dimensionally equidistributed uniform pseudorandom number generator"\\
+ACM Trans. on Modeling and Computer Simulation Vol. 8, No. 1, January pp.3-30 (1998)
+
+\item
+The ranking routines were part of 
+ORDERPACK 2.0 -- Unconditional, Unique, and Partial Ranking, Sorting, and Permutation Downloadable Fortran 90 source code authored by Michel Olagnon\\
+http://www.fortran-2000.com/rank/
+
+\item
+The routines to read and write the GROMACS \verb|xtc| and \verb|trr| files were taken from the GROMACS XTC Library.
+
+\item
+The GSAS FORTRAN libraries to extract the symmetry operators from the space group name were taken from 
+https://subversion.xray.aps.anl.gov/trac/pyGSAS/browser/trunk/fsource/
+
+\item
+The routines to align molecules are the Fortran version of Quaternion Characteristic Polynomial (QCP) algorithm Copyright (c) 2016 Naoto Hori, who ``translated'' the original code written in C by
+Douglas L. Theobald and Pu Liu, and distributed at http://theobald.brandeis.edu/qcp.
+If you use these functionality in a publication please cite the papers on their website, as appropriate.
+
+\item
+The libdcdfort routines for reading the CHARMM DCD files were written by James W. Barnett (https://github.com/wesbarnett/libdcdfort)
+
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\printindex[action] % Actions index
+\printindex[command] % Command index
+
+\end{document}  

@@ -1,0 +1,57 @@
+\subsubsection{Cluster Extraction}
+\index[action]{Cluster Extraction}
+\index[command]{--extract +clusters}
+
+This action extracts a spherical cluster of radius $R$ around the selected atom.
+If the molecular topology has been calculated prior to this command the whole molecule is selected when at least of of its atoms is within the cutoff radius.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--cluster}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+out [cluster.xyz]}\\
+  defines the root of the output file name.
+  The output is currently only in XYZ format and one file is created for each frame processed.
+
+\emph{+i [index]}\\
+  selects the atom at the centre of the cluster.
+
+\emph{+r [0.0]}\\
+  sets the radius of the cluster.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --cluster +i 12 +r 6.0 +out clusters.xyz
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Extract Clusters Action
+...Central atom....................................:          12
+...Radius..........................................:      6.0000
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+%\vspace{0.5cm}
+%\item[File output:]
+%\begin{scriptsize}
+%\begin{verbatim}
+%...
+%\end{verbatim}
+%\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

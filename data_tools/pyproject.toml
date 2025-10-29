@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "data_tools"
+version = "0.1.0"
+description = "Quick plotting utilities for scientific data visualization"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+  {name = "Paolo Raiteri", email = "p.raiteri@curtin.edu.au"},
+]
+keywords = ["plotting", "visualization", "scientific", "matplotlib", "plotly"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "pandas>=1.3.0",
+    "matplotlib>=3.4.0",
+    "numpy>=1.20.0",
+    "plotly>=5.0.0",
+    "kaleido>=0.2.1",
+    "scipy",
+    "lmfit",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=2.0",
+    "black>=21.0",
+    "flake8>=3.9",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+src = ["py.typed"]
+
+[project.scripts]
+gpda = "data_tools.gpda:main"
+qp = "data_tools.plot:main"
+qs = "data_tools.basic_stats:main"
+pk = "data_tools.association_constant:main"
+kb = "data_tools.kb_integral:main"
+qh = "data_tools.histogram:main"
+xo = "data_tools.orca_tools.main:main"

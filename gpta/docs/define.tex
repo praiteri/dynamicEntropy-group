@@ -1,0 +1,87 @@
+\subsubsection{Number of openMP Threads}
+\index[action]{Number of openMP Threads}
+\index[command]{--nt}
+
+This command sets the number of OMP threads to be used in the calculation of the neighbours' list.
+By default all available threads are used, up to a maximum of 8; unless the MPI version of the code is used, in which case only one openMP thread is used.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--nt [number of threads]}
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --nt 4 --i coord.pdb
+mpirun -np 8 gpta_mpi.x --nt 4 --i coord.pdb
+\end{Verbatim}
+\end{small}
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Screen Output}
+\index[action]{Screen Output}
+\index[command]{--log}
+
+This command redirects the standard output to a file, useful for batch processes in script files.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--log [logfile]} 
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --log gpta.log
+\end{Verbatim}
+\end{small}
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Parameters Definition}
+\index[action]{Parameters Definition}
+\index[command]{--define}
+
+This command can be used to defined the value of some of the program variables.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--define [variable] [value]}\\
+  This is the list of variables that currently can be set:
+  \begin{itemize}[leftmargin=2cm]
+    \item[\bf{seed}] seed to initialise the random number generator
+    \item[\bf{rscale}] scaling factor to define the maximum bond length
+    \item[\bf{safedist}] distances wil be computed with a loop over the 27 neighbour cells
+    \item[\bf{verlet}] forces the Verlet algorithm to be used in the calulation of the distances between atoms
+    \item[\bf{rcov}] covalent radius of an atom for the topology calculation
+    \item[\bf{bond} X,Y=2] maximum bond length between X and Y for the topology calculation
+  \end{itemize}
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --define seed 123
+gpta.x --define rscale 1.24
+gpta.x --define safedist
+gpta.x --define verlet
+gpta.x --define rcov Ca=1.9 rcov Na=0.0
+gpta.x --define bond X4,Y4=2. --i coord.pdb --top
+\end{Verbatim}
+\end{small}
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

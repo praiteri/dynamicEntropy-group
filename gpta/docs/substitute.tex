@@ -1,0 +1,74 @@
+\subsubsection{Substitute Molecules with a Different One}
+\index[action]{Substitute Molecules with a Different One}
+\index[command]{--subs}
+
+This action can be used to replace selected molecules with a different molecule read from a file.
+Alternatively this action could be used to simply compute the RMSD of the selected molecules with respect to a reference structure.
+At the moment the RMSD is simply written to a file, but it would be easy to compute its average or distribution.
+Currently only molecules smaller than 50 atoms can be replaced.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--replace}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+f [filename]}\\
+  defines the name of the file containing the new molecules.
+
+\emph{+id [mol ID]}\\
+  defines the ID of the molecules that will be replaced.\newline
+ 
+\emph{+ir [indices]}\\
+  defines the indices of the atoms in the reference molecules that are to be used in the alignment.
+
+\emph{+is [indices]}\\
+  defines the indices of the atoms in the current (system) molecules that are to be used in the alignment.
+
+\emph{+all}\\
+  this flag can be used in place of the previous two and implies that the current and reference molecules have the same number of atoms and they are all to be used for the alignment.
+
+\emph{+rmsd [output file]}\\
+  when this flag is used no substitution if performed, but the RMSD for each molecule is written out.
+
+\vspace{0.5cm}
+\item[Notes:]
+  If the molecules' substitution is performed on a multi-frames input, the topology must be updated at every frame,  \emph{i.e. --top +update} must be used.
+  The topology is also recalculated after the substitution.
+  
+  Although the selection in principle works for multiple molecule's types, this has never been tested.
+
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i co3.pdb --top --subs +id M1 +map 1,2,3,4 1,4,3,2 +f hco3.pdb --o new.pdb
+gpta.x --i slab.pdb --top --subs +id M1 +f co3.pdb +rmsd rmsd.out
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+__________________________________________________________________________________________________________
+Replace Molecules Action
+...Target molecule..................................: M1
+...New molecule read from...........................: hco3.pdb
+...Atoms used for the alignmen
+......Current molecule..............................: 1 2 3 4
+......New molecule..................................: 1 4 3 2
+__________________________________________________________________________________________________________
+Running required action.............................: topology
+...Action flags.....................................: +update
+__________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

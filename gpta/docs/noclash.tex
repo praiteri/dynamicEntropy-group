@@ -1,0 +1,50 @@
+\subsubsection{Remove Overlapping Molecules}
+\index[action]{Remove Overlapping Molecules}
+\index[command]{--noclash}
+
+This action removes overlaps between molecules by deleting the molecule that comes second in the coordinates files.
+If the topology is computed before this action the entire molecule is removed when any of its atoms overlaps with another molecule.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--noclash}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+rmin [0.5]} 
+  sets the minimum distance to define when atoms are considered to be overlapping.
+
+\emph{+dry}\\
+  performs a dry run to give information about how many molecules would be considered overlapping with different values for \emph{+rmin}.
+  The values of \emph{+rmin} that are tested are: 0.1\AA, 0.5\AA\ and 1\AA, plus the value chosen with the \emph{+rmin} flag.
+
+\emph{+s [species]} or \emph{+i [indices]} or \emph{+mol [molecule name]}\\
+  select the species to be used in the calculation of the centre of mass using the atoms' names or their indices or the name of the molecules they belong to.
+  The species selection is done by providing a comma separated list of atom names.
+  The index selection can be done by providing a comma separated list of indices or in loop format B:E:(S), where the stride is optional.
+  The \emph{+mol} flag requires \emph{--top} flag, and the molecules are seleceted by the names given to them by the \emph{--top} command.
+  
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --noclash +rmin 1.1
+gpta.x --i coord.pdb --top --noclash +rmin 1.1
+gpta.x --i coord.pdb --top --noclash +rmin 1.1 +s K,Br
+gpta.x --i coord.pdb --top --noclash +rmin 1.1 +dry
+\end{Verbatim}
+\end{small}
+
+%\vspace{0.5cm} 
+%\item[Screen output:]
+%\begin{scriptsize}
+%\begin{verbatim}
+%...
+%...
+%\end{verbatim}
+%\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

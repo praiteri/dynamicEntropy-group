@@ -1,0 +1,50 @@
+\subsubsection{Rescale the Simulation Cell}
+\index[action]{Rescale the Simulation Cell}
+\index[command]{--rescale}
+
+This action deforms the cell to a new shape and rescales the internal coordinates.
+At the moment the system topology is ignored, which means that the molecules will be stretched after the rescaling.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--rescale}
+
+\vspace{0.5cm}
+\item[List of flags:]
+
+\emph{+cell [cell]}\\
+  defines the size and shape of the region of space to be filled by the new molecules.
+  If no cell was present, this will be the new global cell.
+  See the reading coordinates action (\emph{--i}) for how the cell can be specified.
+
+\emph{+nopos}\\
+  this option scales the only the cell leaving the coordinates unchanged.
+
+\emph{+scale [s1,s2,s3]}\\
+  the lenght of the lattice vectors are multiplied by the three scaling factors [$s1,s2,s3$], but the angles are kept constant.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --rescale +cell 10
+gpta.x --i coord.pdb --rescale +cell 10,10,20
+gpta.x --i coord.pdb --rescale +cell 10,10,10,90,90,90
+gpta.x --i coord.pdb --rescale +cell 10,0,0,0,10,0,0,0,10
+gpta.x --i coord.pdb --rescale +scale 1,1,3 +nopos
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

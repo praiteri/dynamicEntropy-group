@@ -1,0 +1,58 @@
+\subsubsection{Align frames}
+\index[action]{Align frames}
+\index[command]{--align}
+
+This action aligns the frames to minimise the RMSD for the selected molecule.
+It is analogous to the \emph{--solvation} command, but instead of computing the density profile it bdumps out the rotated coordinates. 
+A selection can be made to write out the aligned positions of a subset of atoms
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--solvation}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+id}
+  defines the ID of the molecule to be use as solute.
+  It has never been tested in cases where more than one solute is present.
+
+\emph{+out [aligned.dcd]}\\
+  defines the output file name.
+
+\emph{+ref [filename]}\\
+  read the orientation of the solute molecule from file; the atoms in this file must be listed in the same order as they appear in the trajectory file.
+  There is currently no check that this is the case.
+  If this flag is not used the orientation of the solute molecule in the first frame is taken as the reference orientation.
+
+\emph{+swap [indices] ...}\\
+  the positions of the selected atoms are swapped around while loooking for the optimal overlap between the current and reference molecule. 
+  This is useful when looking at the solvent density around molecules that have rotating part, such as a carboxyl or a methyl group.
+
+\emph{+s [species]} or \emph{+i [indices]} or \emph{+mol [molecule names]}\\
+  select the species to be used by the action.
+  The species selections are done by providing a comma separated list of atom names.
+  The index selections can be done by providing a comma separated list of indices or in loop format B:E:(S), where the stride is optional.
+  The \emph{+mol} flag requires \emph{--top} flag, and the molecules are seleceted using the names given to them by the \emph{--top} command.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb traj.dcd --top --align +id M2 +out aligned.dcd
+gpta.x --i coord.pdb traj.dcd --top --align +id M2 +mol M2 +out aligned.dcd
+\end{Verbatim}
+\end{small}
+
+%\vspace{0.5cm}
+%\item[Screen output:]
+%\begin{scriptsize}
+%\begin{verbatim}
+%...
+%...
+%\end{verbatim}
+%\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

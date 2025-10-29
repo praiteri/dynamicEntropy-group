@@ -1,0 +1,43 @@
+\subsubsection{Custom Selection of Frames}
+\index[action]{Custom Selection of Frames}
+\index[command]{--frames}
+
+When reading a multi-frame trajectory it is possible to select a subset of configurations for processing.
+This could be done via a list of comma separated list of individual frames or via a loop-type definition, B:(E):(S).
+By default the end frame and stride are set to the largest single precision integer and to 1, respectively, and they can be omitted.
+If only one frame is required it is possible to use the command \emph{--frame N}.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--frames [indices]} \\
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb traj.dcd --frames 10
+gpta.x --i coord.pdb traj.dcd --frames 10:100
+gpta.x --i coord.pdb traj.dcd --frames 10:100:5
+gpta.x --i coord.pdb traj.dcd --frames 1,2
+gpta.x --i coord.pdb traj.dcd --frame 123
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+First frame to process.............................:          10
+Last frame to process..............................:         100
+Stride for processing frames.......................:           5
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

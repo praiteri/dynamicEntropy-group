@@ -1,0 +1,35 @@
+\subsubsection{Shift Atoms}
+\index[action]{Shift Atoms}
+\index[command]{--shift}
+
+This action shifts the atoms in the system by a fixed displacement.
+The atoms are not modified in any other way, \emph{e.g} by rewrapping them into the simulation box.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--shift [displacement]}
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --shift 0.0,10.5,-12.1
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Translating atom's coordinates by..................:      0.0000        10.5000       -12.1000
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

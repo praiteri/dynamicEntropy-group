@@ -1,0 +1,117 @@
+\subsubsection{X-ray Powder Spectrum}
+\index[action]{X-ray Powder Spectrum}
+\index[command]{--xray}
+
+This action computes the X-ray powder diffraction spectrum for the input structure, which must contain the cell definition.
+The output file contains the list of reflections and the powder diffraction spectrum.
+
+The scattering intensity was computed using the traditional formula
+\[
+I_{hkl} \propto F_{hkl}^2 \Theta_{hkl}
+\]
+where 
+\[
+F_{hkl}^2 = \sum_i f_i \exp\bigg[-B\bigg(\frac{\sin\theta}{\lambda}\bigg)^2\bigg] \exp\bigg[2\pi i(\vec{q}\cdot\vec{x}_i)\bigg].
+\]
+$f_i$ are the atomic structure factors, 
+$\vec{q}=(h,k,l)$ is the reciprocal space vector, 
+$\vec{x}_i$ are the atomic fractional coordinates, 
+$B$ is the Debye–Waller factor,
+$\lambda=2d_{hkl}\sin\theta$ is the wavelength
+and $d_{hkl}$ is the distance between the $hkl$ planes.
+
+$\Theta_{hkl}$ is the Lorentz polarisation factor
+\[
+\Theta_{hkl} = \frac{1 + \cos^2 2\theta}{\sin^2\theta}\frac{1}{\sin\theta}
+\]
+where $(1 + \cos^2 2\theta)$ denotes the polarisation factor, 
+$\sin 2\theta$ describes the change in irradiated volume of the crystal as a function of $2\theta$
+and the last term is the powder ring distribution factor for a random distribution of crystals, \emph{i.e.} for a powder sample.
+The atomic scattering factors were taken from the international tables for crystallography 
+%(DOI: 10.1107/97809553602060000600) 
+and have the form
+\[
+f = \sum_{i=1}^4 a_i \exp\bigg[-b_i \bigg(\frac{\sin\theta}{\lambda}\bigg)^2\bigg] + c.
+\]
+The Debey-Waller parameter $B$ was assumed to be constant, which is reasonable for harmonic vibrations,
+\[
+B=8\pi^2 \eta
+\]
+where $\eta=0.05$ for hydrogen and $\eta=0.06$ for all other elements.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--xray}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+out [xray.out]}\\
+  defines the output file name.
+
+\emph{+mini [5]}\\
+  sets the minimum value of $2\theta$ for the spectrum
+
+\emph{+max [50]}\\
+  sets the maximum value of $2\theta$ for the spectrum
+
+\emph{+d2t}\\
+  sets the spectral resolution ($\delta2\theta$)
+
+\emph{+lambda [1.540560]}\\
+  sets the wavelength of the x-rays in nm
+
+\emph{+kmax [30]}\\
+  sets the maximum number of k-vectors to use in the calculation
+
+\emph{+fwhm}\\
+  sets the Full Width at Half Maximum for the thermal broadening of the peaks
+
+\emph{+cauchy [0.5]}\\
+  sets the Cauchy $n$ parameter
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --xray
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Computing Xray Powder Diffraction Pattern
+...Output file.....................................: xray.out
+...Wavelength [nm].................................:      1.5406
+...Twotheta range..................................:      5.0000        50.0000
+...Twotheta resolution.............................:      0.0100
+...Number of kspace vectors........................:          30
+...Smoothing parameters
+......FWHM.........................................:      0.1000
+......Cauchy n parameter...........................:      0.5000
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\vspace{0.5cm}
+\item[File output:]
+\begin{scriptsize}
+\begin{verbatim}
+# index    d_hkl    twoth  intensity      (h , k , l) ...
+#     1   17.062    5.175         0.       0   0  -1        0   0   1
+#     2    8.531   10.361         0.       0   0   2        0   0  -2
+...
+# Two Theta | Intensity [a.u.]
+  5.000      0.00000
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

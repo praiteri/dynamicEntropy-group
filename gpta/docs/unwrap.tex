@@ -1,0 +1,35 @@
+\subsubsection{Unwrap Molecules from Trajectory}
+\index[action]{Unwrap Molecules from Trajectory}
+\index[command]{--unwrap}
+
+This action unwraps the atoms in the system to produce a continuous trajectory, useful to compute the self diffusion coefficient.
+If the molecular topology has been calculated, the molecules must be unbroken at the beginning of the trajectory.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--unwrap}
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --unwrap
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+...Unwrapping trajectory
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+ 
+\hdashrule{\textwidth}{1pt}{}

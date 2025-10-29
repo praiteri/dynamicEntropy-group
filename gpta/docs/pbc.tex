@@ -1,0 +1,40 @@
+\subsubsection{Wrap Molecules Inside the Simulation Cell}
+\index[action]{Wrap Molecules Inside the Simulation Cell}
+\index[command]{--pbc}
+
+This action wraps the atoms back into the simulation cell.
+If the molecular topology has been calculated, the molecules are kept intact.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--pbc}
+
+\item[List of flags:]
+\emph{+nint}\\
+  wraps the atoms/molecules between [-0.5:0.5] instead of [0:1].
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --pbc
+gpta.x --i coord.pdb --pbc +nint
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+...Applying periodic boundary conditions...........: [0:1]
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+ 
+\hdashrule{\textwidth}{1pt}{}

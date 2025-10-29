@@ -1,0 +1,73 @@
+# plot6
+
+Quick plotting utilities for scientific data visualization.
+
+## Installation
+
+### From source (local development)
+
+```bash
+# Clone or navigate to the repository
+cd /path/to/plot6
+
+# Install in editable mode
+pip install -e .
+```
+
+### From PyPI (once published)
+
+```bash
+pip install plot6
+```
+
+## Usage
+
+```python
+import plot6
+
+# Read data files
+data = plot6.read_file_to_df("data.csv")
+
+# Create plots
+x = [1, 2, 3, 4, 5]
+y = [1, 4, 9, 16, 25]
+
+# Plotly (interactive)
+plot6.plot(x, y, xlabel="Time", ylabel="Value", ptype="plotly")
+
+# Matplotlib (static)
+plot6.plot(x, y, xlabel="Time", ylabel="Value", ptype="matplotlib", fout="plot.png")
+
+# Multiple series
+y_multi = [[1, 4, 9, 16, 25], [1, 2, 3, 4, 5]]
+plot6.plot(x, y_multi, legend=["Squared", "Linear"], ptype="plotly")
+
+# Set plot style
+plot6.set_plot_style(figsize=(10, 6), fontsize=20, line_width=2)
+```
+
+## Features
+
+- **File Reading**: Support for CSV, LAMMPS output, and generic text files
+- **Flexible Plotting**: Both Plotly (interactive) and Matplotlib (static) backends
+- **Publication Quality**: Pre-configured styles for scientific publications
+- **Multiple Series**: Easy plotting of multiple data series with legends
+- **Customizable**: Extensive styling options for fonts, colors, markers, and more
+
+## API Reference
+
+### File Reading Functions
+
+- `read_file_to_df(fname, ftype=None, **kwargs)` - Read various file formats into DataFrame
+- `read_lammps_output_to_df(file_path)` - Parse LAMMPS output files
+- `remove_hash_from_first_line(file_path)` - Clean CSV files with hash comments
+
+### Plotting Functions
+
+- `plot(x, y, xlabel, ylabel, title, legend, grid, ptype, fout, **kwargs)` - Universal plotting function
+- `set_plot_style(**kwargs)` - Configure matplotlib style parameters
+- `set_plotly_template(**kwargs)` - Configure Plotly layout template
+
+## License
+
+MIT License

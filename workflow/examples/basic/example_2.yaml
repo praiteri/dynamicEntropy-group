@@ -1,0 +1,29 @@
+# Script output level: INFO, DEBUG...
+noise: INFO
+
+# If true only the directory structure is built
+dry_run: false
+
+# Optional
+# Define a set of variables to be used in the folder names and  in the commands. 
+variables: 
+    dir: ["x", "y", "z"]
+    temp: [1000, 2000, 3000]
+
+# Optional
+# Set workspace and behavior for exiting folders ["replace", "create", "skip", "enter"]
+# default workspace: ./
+# default behaviour: enter
+workspace:
+    mode: replace
+    folders: test_{{dir}}_{{temp}}
+
+# List of commands to be executed in each folder
+# {{RANDOM}} will be replaced with a random number
+commands:
+    - pwd
+    - touch tmp_{{RANDOM}}
+    - echo "TEMP" > lmp.inp
+    - cat lmp.inp
+    - sed -i '' 's/TEMP/{{temp}}/' lmp.inp
+    - cat lmp.inp

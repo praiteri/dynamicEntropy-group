@@ -1,0 +1,122 @@
+\subsubsection{Input Coordinates}
+\index[action]{Input Coordinates}
+\index[command]{--i}
+
+GPTA can read the atomic coordinates in different file formats.
+The coordinates' format is normally inferred from the file extension
+\begin{itemize}[leftmargin=2cm]
+\item[.xyz $\to$] XYZ file 
+\item[.pdb $\to$] PDB file 
+\item[.gin $\to$] GULP input file 
+\item[.cif $\to$] Crystallographic Information File (CIF) file
+\item[.dcd $\to$] CHARMM DCD file
+\item[.dcd2 $\to$] CHARMM DCD file
+\item[.gau $\to$] Gaussian output file
+\item[.lmp $\to$] LAMMPS coordinates file
+\item[.lmptrj $\to$] LAMMPS custom trajectory file
+\item[.gro $\to$] GROMACS GRO file
+\item[.xtc $\to$] GROMACS XTC file 
+\item[.trr $\to$] GROMACS XTC file 
+\end{itemize}
+but it can be overridden by appending the canonical file extension (listed above) to the action flag, like in the last example below.
+For the DCD, XTC and XTC binary formats that do not contain the atoms' label it is mandatory to read first an XYZ or a PDB file.
+Multiple files can be specified sequentially or the command can be repeated multiple times.
+Currenlty the flags must follow the file names, and they are globally applied even if more than one \emph{--i} command are used.
+
+There are two routines that can read DCD files, by default a faster implementation is used, which however may fail if the trajectory file is corrupted.
+An alternative routine can be used, where careful checks on the integrity of the files are made, can be selected with the type ``dcd2''.
+This routine was taken from the libdcdfort library written by James W. Barnett (https://github.com/wesbarnett/libdcdfort).
+
+Currently, GPTA reads only one structure per file in the ``cif'' and ``gin'' formats.
+
+The ``xyz'' file type supports also the "extended XYZ format" used by the Atomic Simulation Environment (https://wiki.fysik.dtu.dk/ase).
+For example the simulation box and the atomic charges can be included as
+\begin{small}
+\begin{Verbatim}[frame=single]
+800
+Lattice="5.44 0.0 0.0 0.0 5.44 0.0 0.0 0.0 5.44" Properties=species:S:1:pos:R:3:charge:R:1 
+Na        0.00000000      0.00000000      0.00000000   1.0
+Cl        1.36000000      1.36000000      1.36000000  -1.0
+...
+\end{Verbatim}
+\end{small}
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--i [filename1] [filename2] \dots}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+cell [simulation cell]}\\
+  defines the shape of the simulation cell; 1, 3, 6 or 9 numbers are expected
+\begin{itemize}[leftmargin=1.5cm]
+  \item[1 :] cubic box
+  \item[3 :] orthorhombic box defined as $|a|\ |b|\ |c|$
+  \item[6 :] triclinic box defined as $|a|\ |b|\ |c|\ \alpha\ \beta\ \gamma$
+  \item[9 :] triclinic box defined from the cell matrix $\vec{a}\ \vec{b}\ \vec{c}$
+\end{itemize}
+  The cell definition read from the coordinates file, if present, will be overridden.
+
+\emph{+nm}\\
+  assumes the input coordinates are in nm.
+  This flag should not be used for coordinates files that are by definition in nm, \emph{i.e.} \verb|.gro| and \verb|.xtc|, otherwise the \AA\ to nm conversion factor will be applied twice.
+
+\emph{+bohr}\\
+  assumes the input coordinates are in bohr.
+
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb 
+gpta.x --i coord.pdb traj.dcd
+gpta.x --i coord.pdb --i traj.dcd
+gpta.x --i coord.pdb +cell 14.
+gpta.x --i coord.pdb +cell 14.0,15.0,16.0
+gpta.x --i coord.pdb +cell 14.0,15.0,16,90.0,90.0,120.0
+gpta.x --i coord.pdb +cell 14.0,0.0,0.0,,0.0,15.0,0.0,,0.0,0.0,16.0
+gpta.x --ipdb coordinates.xyz 
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Opening input coordinates files
+...pdb file........................................: coord.pdb
+...dcd file........................................: traj.dcd
+_________________________________________________________________________________________________________
+Initial cell
+...Cell vector A...................................:     14.3000         0.0000         0.0000
+...Cell vector B...................................:      0.0000        14.3000         0.0000
+...Cell vector C...................................:      0.0000         0.0000        14.3000
+...Cell lengths....................................:     14.3000        14.3000        14.3000
+...Cell angles.....................................:     90.0000        90.0000        90.0000
+...Volume..........................................:   2924.2070
+_________________________________________________________________________________________________________
+System composition
+...Number of atoms found...........................:         298
+......Number of unique species Ca..................:           1
+......Number of unique species H...................:         198
+......Number of unique species O...................:          99
+------------------------------------------------------------------------
+...Total mass (g/mole).............................:   1824.0600
+...Density (g/cm^3)................................:      1.0358
+...Total charge....................................:      0.0000
+_________________________________________________________________________________________________________
+Frames processing summary..........................:        3779
+...Number of frames read...........................:        3779
+...Number of frames processed......................:        3779
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

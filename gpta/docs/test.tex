@@ -1,0 +1,25 @@
+\subsubsection{Test Routine}
+\index[action]{Test Routine}
+\index[command]{--test}
+
+This action is an example routine that can be modified to quickly implement the calculation of a new property or manipulation of the coordinates.
+In the example, the action shows how the calculation of the radial distribution function can be implemented using the routines to compute distances with periodic boundary conditions and how to use the routine to compute averages and distribution of properties. 
+Note that this implementation of the calculation of the radial pair distribution function is about 10 times slower that the \emph{--gofr} action.
+That is partially due to the use a bit of openMP parallelisation in the \emph{--gofr} action and to the fact that the property class are generic and designed to work with MPI, which is detrimental to speed.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--test \dots}
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --test ...
+\end{Verbatim}
+\end{small}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

@@ -1,0 +1,182 @@
+\subsubsection{Add particles}
+\index[action]{Add Particles}
+\index[command]{--add}
+
+This action adds new particles to a frame.
+It can be used to add solute/solvent atoms or molecules, or to add dummy particles to the system.
+The new species are added randomly to the cell.
+This action is a wrapper for different actions which are called by the following commands,
+which accept different flags and work in slightly different ways;
+\begin{itemize}
+\item --add solvent \\
+This command adds a solvent to the input frame either as elements from the periodic table or as molecules read from a file.
+
+\item --add solute \\
+This command adds a solute to the input frame either as elements from the periodic table or as molecules read from a file.
+
+\item --add centre \\
+This command adds a dummy atom to a molecule, \emph{e.g.} the fourth site in TIP4P water.
+
+\item --add dummy \\
+This command adds the geometric centre (or the centre of mass) to a molecule as an extra particle, which can be used for visualisation purposes or for computing other properties related to the position of the centre of mass.
+
+\item --add merge \\
+This command combines the coordinated from two files.
+
+\item --add box \\
+This command creates a new system by defining its box. 
+The box can be defined using 1 number (cubic), three numbers (orthorhombic), 6 numbers ($|a|, |b|, |c|, \alpha, \beta$ and $\gamma$) or 9 numbers (metric matrix $\vec{a},\vec{b},\vec{c}$).
+
+\end{itemize}
+In particular, for the first two commands, after the new particles have been added, the overlapping solvent molecules are removed.
+Hence, in the case of \emph{--add solvent} the number of molecules added will be less than the number specified in the input, while in the case of \emph{--add solute} some of the molecules that were initially in the system will be removed.
+No molecules will be removed after the other commands.
+
+This action can also be used to create a system from scratch, \emph{i.e.} when no \emph{--i} command is used.
+
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--add solvent / -add solute}
+
+\vspace{0.5cm}
+\item[Prerequisite:] \emph{--top}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+atom [species]}\\
+  defines the name of mono-atomic species to add, it doesn't have to be an element from the periodic table..
+
+\emph{+f [filename]}\\
+  defines the name of the file that contains the coordinates of the molecule to add to the system.
+
+\emph{+n [1]}\\
+  sets number of species to add.
+
+\emph{+rmin [1.5]}\\
+  sets the cutoff distance to remove overlapping solvent molecules
+
+\emph{+box [cell]}\\
+  defines the size and shape of the region of space to be filled by the new molecules.
+  If no cell was present, this will be the new global cell.
+  See the reading coordinates action (\emph{--i}) for how the cell can be specified.
+
+\emph{sphere [radius]}\\
+  define the radius of the sphere to be filled by the new molecules.
+
+\emph{+origin [0,0,0]}\\
+  defines the origin of the box or the centre of the sphere to be filled by the new molecules.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --top --add solute +atom Na,Cl +n 2,2 +rmin 4.0
+gpta.x --i coord.pdb --top --add solvent +f benzene.pdb +n 5 +rmin 5.0 --o new.pdb
+\end{Verbatim}
+\end{small}
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\item[Command:] \emph{--add centre}
+
+\vspace{0.5cm}
+\item[Prerequisite:] \emph{--top}
+
+\vspace{0.5cm}
+\item[List of flags:]
+\emph{+mol [molecule ID]}\\
+  defines the name of the molecule whose centre of mass will be calculated.
+  The molecules are seleceted using the names given to them by the \emph{--top} command.
+
+\emph{+i i1,i2\dots} \\
+  defines the indices of atoms in the molecules to be used for the calculation of the centre of mass.
+  By default all atoms are used.
+
+\vspace{0.5cm}
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --top --add centre +mol M1
+gpta.x --i benzene.pdb --top --add centre +mol M1 +i 1,3,5,7,9,11
+\end{Verbatim}
+\end{small}
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\item[Command:] \emph{--add dummy}
+
+\vspace{0.5cm}
+\item[Prerequisite:] \emph{--top}
+
+\vspace{0.5cm}
+\item[List of flags:]
+\emph{+mol [molecule ID]}\\
+  defines the name of the molecule where the dummy site will be added.
+  The dummy particle is added along the bisector of the HOH bond.
+
+\emph{+i i1,i2,i3} \\
+  defines the indices of the O and H atoms that will be used to compute the bisector.
+  The O atoms is the first index.
+  
+\emph{+dist [0.1]} \\
+  defines the distance along the bisector where the dummy site will be added.
+
+\vspace{0.5cm}
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i water.pdb --top --add dummy +i 1,2,3 +dist 0.1577 --o tip4p_ice.pdb
+\end{Verbatim}
+\end{small}
+
+
+\item[Command:] \emph{--add box [box]}
+
+
+\vspace{0.5cm}
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --add box 12. --add solvent +f h2o.pdb +box 12. +n 57 +rmin 2 --top --o water.pdb
+\end{Verbatim}
+\end{small}
+
+
+\item[Command:] \emph{--add merge}
+
+\emph{+f} \\
+  defines the file that contains the coordinates of the atoms to be added to the system.
+
+\vspace{0.5cm}
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --add merge +f kbr.pdb --top +update
+\end{Verbatim}
+\end{small}
+
+
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+__________________________________________________________________________________________________________
+Add Atoms
+...Size of the box to be filled.....................:     10.0000        10.0000        10.0000
+...Angles of the box to be filled...................:     90.0000        90.0000        90.0000
+...Origin of the box to be filled...................:      0.0000         0.0000         0.0000
+...New moleculed from file..........................: h2o.pdb
+...Number of molcules to add........................:          33
+...Minimum distance between the molecules...........:      2.0000
+__________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

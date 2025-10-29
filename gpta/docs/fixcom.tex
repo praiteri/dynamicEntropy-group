@@ -1,0 +1,52 @@
+\subsubsection{Translate the Simulation Centre of Mass}
+\index[action]{Translate the Simulation Centre of Mass}
+\index[command]{--fixcom}
+
+This action can be used to traslate the centre of mass of selected atoms to a chosen position.
+It is mostly useful to prepare initial configurations and for focussing the visualisation in post-processing.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--fixcom}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+s [species]} or \emph{+i [indices]} or \emph{+mol [molecule name]}\\
+  select the species to be used in the calculation of the centre of mass using the atoms' names or their indices or the name of the molecules they belong to.
+  The species selection is done by providing a comma separated list of atom names.
+  The index selection can be done by providing a comma separated list of indices or in loop format B:E:(S), where the stride is optional.
+  The \emph{+mol} flag requires \emph{--top} flag, and the molecules are seleceted using the names given to them by the \emph{--top} command.
+
+\emph{+centre}\\
+  shift the centre of mass of the selected atoms to the centre of the simulation cell
+
+\emph{+loc [location]}\\
+  shift the centre of mass of the selected atoms to the specified location
+
+\emph{+initial}\\
+  maintains the centre of mass in the same location as it was in the first frame.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --fixcom +s Ca +centre
+gpta.x --i coord.pdb --fixcom +mol M1 +centre
+gpta.x --i coord.pdb --fixcom +s Ca +loc 1.5,2.5,3.5
+gpta.x --i coord.pdb traj.dcd --fixcom +s Ca +initial
+\end{Verbatim}
+\end{small}
+
+%\vspace{0.5cm} 
+%\item[Screen output:]
+%\begin{scriptsize}
+%\begin{verbatim}
+%...
+%...
+%\end{verbatim}
+%\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

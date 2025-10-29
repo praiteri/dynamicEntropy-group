@@ -1,0 +1,70 @@
+\subsubsection{Extract configurations based on frames' properties}
+\index[action]{Extract configurations based on frames' properties}
+\index[command]{--extract +conf}
+
+This action extracts frames based on properties read from a file.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--framesByProperty}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+f [conf.xyz]}\\
+  defines the file that contains the properties used to select the frames to be written out.
+
+\emph{+out [cluster.xyz]}\\
+  defines the root of the output file name.
+  The output is currently only in XYZ format and one file is created for each frame processed.
+
+\emph{+min [list]}\\
+  comma separated list of the minimum values of each property to be written out.
+  INF or * can be used to accept any values of a property.
+
+\emph{+max [list]}\\
+  comma separated list of the maximum values of each property to be written out.
+  INF or * can be used to accept any values of a property.
+
+\emph{+out [list]}\\
+  comma separated list of the maximum values of each property to be written out .
+  INF or * can be used to accept any values of a property.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --framesByProperty +f colvar_gpta +out out.1.dcd \\
+   +min *,1.15,-1.0,0.0 +max *,1.30,-0.9,0.2
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+__________________________________________________________________________________________________________
+Extract frames by properties
+...Properties file..................................: colvar_gpta
+...Number of properties in file.....................:           4
+......Limits for property #1........................:    999.0000       0.256010E+08
+......Limits for property #2........................:      1.1500         1.3000
+......Limits for property #3........................:     -1.0000        -0.9000
+......Limits for property #4........................:      0.0000         0.2000
+...Output file......................................: out.1.dcd
+__________________________________________________________________________________________________________...
+\end{verbatim}
+\end{scriptsize}
+
+%\vspace{0.5cm}
+%\item[File output:]
+%\begin{scriptsize}
+%\begin{verbatim}
+%...
+%\end{verbatim}
+%\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

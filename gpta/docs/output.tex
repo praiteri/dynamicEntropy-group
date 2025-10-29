@@ -1,0 +1,86 @@
+\subsubsection{Output Coordinates Files}
+\index[action]{Output Coordinates Files}
+\index[command]{--o}
+
+This action writes the (manipulated) manipulated coordinates to a file.
+Currently these are the available coordinates outpu formats:
+\begin{itemize}[leftmargin=2cm]
+\item[.xyz $\to$] XYZ file 
+\item[.pdb $\to$] PDB file 
+\item[.pdb2 $\to$] PDB file with connectivity at the end
+\item[.gin $\to$] GULP input file 
+\item[.gin2 $\to$] GULP input file with fractional coordinates
+\item[.dcd $\to$] CHARMM DCD file (binary)
+\item[.psf $\to$] CHARMM PSF input file 
+\item[.arc $\to$] TINKER format
+\item[.lmp $\to$] LAMMPS input file 
+\item[.lmptrj $\to$] LAMMPS trajectory input file (dump custom)
+\item[.xtc $\to$] GROMACS xtc trajectory file (binary)
+\end{itemize}
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--o [filename1]}
+
+\vspace{0.5cm}  
+\item[List of flags:] 
+\emph{+append}\\
+  forces to coordinates to be appended to the existing output file.
+  No checks are currently made to ensure the the coordinates in the existing file and the new output have the same format
+
+\emph{+bohr [check]}\\
+  forces the output coordinates to be in Bohr.
+
+\emph{+f [forcefield]}\\
+  this flag is available only for the LAMMPS format.
+  defines the file with the forcefield to generate a coordinates file for LAMMPS.
+  It requires \emph{--top} to compute the system's topology.
+
+\emph{+ignore [check]}\\
+  this flag is available only for the LAMMPS format.
+  It can be used to ignore missing terms in the forcefield file.
+  Because missing terms could indicate either an unphysical topology or errors in the force field file, extreme care should be paid when using this flag. 
+  If this flag is not used a warning message is printed on the screen and the user has to manually ignore all the missing terms, or stop the program and fix the problem in the coordinates file or in the force field file.
+  This flag requires one argument that specifies which term(s) can be ignored:
+  \begin{itemize}
+  \item \emph{check}
+  \item \emph{all}
+  \item \emph{bonds}
+  \item \emph{angles}
+  \item \emph{torsions}
+  \item \emph{impropers}
+  \end{itemize}
+  Multiple options can be specified in a comma separated list.
+
+\emph{+map [labels] [types]}\\
+  this flag is available only for the LAMMPS trajectory file. It provides a 1 to 1 map between the atoms' labels in the file and the LAMMPS types given in the forcefield.
+  If it is not present the atom types are assigned a integer value using the atoms' label in the order they appear in the input file.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --o coord.xyz
+gpta.x --i coord.pdb --o test.pdb +append
+gpta.x --i coord.pdb --opdb test +bohr
+gpta.x --i coord.pdb --top --o coord.lmp +f forcefield.lmp
+gpta.x --i coord.pdb --o coord.lmptrj +map C4,O4,Ca 3,4,5
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Writing coordinates in xyz format..................: coord.xyz
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

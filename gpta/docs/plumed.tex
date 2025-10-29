@@ -1,0 +1,39 @@
+\subsubsection{PLUMED interface}
+\index[action]{PLUMED interface}
+\index[command]{--plumed}
+
+This action launches the PLUMED interface.
+It can be used to compute any collective variables (CV) that is available in PLUMED.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--plumed}
+
+\emph{+f [plumed.inp]}\\
+  defines the name of the file that contains the PLUMED commands.
+  Please refer to the PLUMED manual (https://plumed.org) for the appropriate syntax of this file.
+
+\emph{+out [plumed.out]}\\
+  defines the output file for the PLUMED log, the CV(s) output is defined in the PLUMED input file.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --plumed +f plumed.inp +out plumed.out
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

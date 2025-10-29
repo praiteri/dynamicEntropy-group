@@ -1,0 +1,99 @@
+\subsubsection{Mean Square Displacement}
+\index[action]{Mean Square Displacement}
+\index[command]{--msd}
+
+This action computes the Mean Square Displacement (MSD) of the selected species.
+The MSD after a certain time interval $t$ is computed as
+\[
+MSD(t) = \frac{1}{N(t)}\sum_{j=1}^{N_{t}}\sum_{i=1}^{N_{at}}[x_i(t_0+t_j)-x_i(t_0)]
+\]
+where $i$ runs over the selected atoms ($N_{at}$), $t_0$ indicates the reference frame, which is reset every $N_t$ frames and $t_j$ are all the frames between two successive resets of the reference structure.
+$N(t)$ is the number of configurations that have been found at a time $t=t_j-t_0$ from any given reference frame.
+The periodic reset of the reference frame helps improve the statistics when computing the MSD for dilute solutes, \emph{i.e.} one ion in water.
+The flag \emph{+nt} allows for controlling how often the reference frame is reset.
+
+The mean square displacement is then used to compute the self-diffusion coefficient of the selected species.
+The last 75\% of the MDS is fitted with e straight line and the slope is converted to the self-diffusion coefficient, $D$,
+ using the standard Einstein relations
+\[
+MSD(t) = 6Dt.
+\]
+Note that for the calculation of self-diffusion coefficient to be correct the frames must be uniformly separated.
+The time interval between the frames is set by default to 1~ps, but this can be changed using the \emph{+dt} flag.
+It is important to plot the MSD from the output file to ensure that it is indeed linear to ensure that the computed self-diffusion coefficient is converged.
+
+It is important to note that the results obtained from this action with the parallel version of GPTA depend on the number of CPUs used.
+This is because each CPU computes the MSD up to $N_t$ frames, counted on the frames it receives.
+Hence, because each CPU processes every N$^\mathrm{th}$ frame, where $N$ is the number of CPUs devoted to processing, the maximum time separation between the frames is
+$N\times N_t\times\delta t$ picoseconds.
+It is however possible to obtain the same result regardless of the number of CPU used if $N\times N_t$ is kept constant.
+Please keep in mind that when more than 5 MPI processes are used, one is devoted to only reading the trajectory.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--msd}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+out [msd.out]}\\
+  defines the output file name
+
+\emph{+s [species]} or \emph{+i [indices]} or \emph{+mol [molecule names]}\\
+  select the species to be used by the action.
+  The species selections are done by providing a comma separated list of atom names.
+  The index selections can be done by providing a comma separated list of indices or in loop format B:E:(S), where the stride is optional.
+  The \emph{+mol} flag requires \emph{--top} flag, and the molecules are seleceted using the names given to them by the \emph{--top} command.
+
+\emph{+nt [100]}\\
+  maximum time separation in number of frames, $N_t$, from the reference structure to compute the MSD
+
+\emph{+dt [1.0]}\\
+  time separation between the frames in ps, which is used to compute the Self Diffusion Coefficient
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb traj.dcd --msd +s Ca +out msd.out
+gpta.x --i coord.pdb traj.dcd --msd +s O1,O2 +nt 1000
+gpta.x --i coord.pdb traj.dcd --msd +mol M2 +dt 0.5
+gpta.x --i coord.pdb traj.dcd --msd +i 1:300:3
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Computing mean square displacement
+...Maximum number of frames................................:        1000
+...Output file.............................................: msd.out
+...Atoms selection for --msd
+......Selection command....................................:
+......Atoms selected in the first group....................:           1
+_________________________________________________________________________________________________________
+Self diffusion coefficient calculation
+  Average D0 [10^-5 cm^2/s]................................:      0.0734
+  Average correlation factor...............................:      0.9444
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\vspace{0.5cm}
+\item[File output:]
+\begin{scriptsize}
+\begin{verbatim}
+# Time [ps] | MSD [A^3]
+  1.000      0.90433
+  2.000      2.47421
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

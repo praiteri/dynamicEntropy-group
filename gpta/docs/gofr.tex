@@ -1,0 +1,83 @@
+\subsubsection{Radial Pair Distribution Function - g(r)}
+\index[action]{Radial Pair Distribution Function}
+\index[command]{--gofr}
+
+This action computes the Radial Pair Distribution function 
+between species $\alpha$ and $\beta$, $g_{\alpha\beta}(r)$, which is defined as
+\[
+g_{\alpha\beta}(r) = \frac{1}{4\pi r^2 N_\alpha\rho_\beta}\sum_{i\in\alpha}\sum_{j\in\beta}\langle \delta(r_{ij}-r)\rangle
+\]
+where $r_{ij}$ is the distance between atoms $i$ and $j$ computed with the appropriate PBC, $\langle\rangle$ indicates the average over all the selected frames, $N_\alpha$ is the number of central atoms, and $\rho_\beta=N_\beta/V$ is the number density of the neighbouring atom.
+
+This action also compute the Kirkwood-Buff integral as:
+\[
+G_{\alpha\beta}(r) = \int_0^r 4\pi r^2[g_{\alpha\beta}(r)-1]\mathrm{d}r.
+\]
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--gofr}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+out [gofr.out]}\\
+  defines the output file name
+
+\emph{+s [species1] [species2]} or \emph{+i [indices1] [indices2]}\\
+  select the species to be used by the action.
+  The species selections are done by providing a comma separated list of atom names.
+  The index selections can be done by providing a comma separated list of indices or in loop format B:E:(S), where the stride is optional.
+  The \emph{+mol} flag requires \emph{--top} flag, and the molecules are seleceted using the names given to them by the \emph{--top} command.
+
+\emph{+r [6\AA]}\\
+  sets the cutoff distance for the calculation of the radial pair distribution function.
+
+\emph{+nbin [100]}\\
+  defines the number of bins used for the calculation of the radial pair distribution function.
+
+\emph{+solute}\\
+  computes the g(r) for the selected atoms without using the neighbours' list.
+  It is a more efficient algorithm for computing the g(r) of a solvent around a few solute atoms.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb traj.dcd --gofr +s Ca O1,O2 +out gofr.out +nbin 100
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Settings for the radial pair distribution function
+...Cutoff distance.................................:      6.0000
+...Number of bins..................................:         100
+...Output file.....................................: gofr.out
+...Atoms selection for --gofr
+......Selection command............................:
+......Atoms selected in the first group............:           1
+......Atoms selected in the second group...........:          99
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\vspace{0.5cm}
+\item[File output:]
+\begin{scriptsize}
+\begin{verbatim}
+# Distance | g(r) | Coordination Number | KB integral
+   0.09000    0.00000    0.00000   -0.00724
+   0.15000    0.00000    0.00000   -0.02443
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

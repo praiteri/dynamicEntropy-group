@@ -1,0 +1,76 @@
+\subsubsection{Density Profile (1D)}
+\index[action]{Density Profile (1D)}
+\index[command]{--dmap1D}
+
+This action computes the 1D density profile along one of the crystallographic directions.
+The density profile can be computed for a subset of atoms that can be selected either by their label (\emph{+s}), their indices (\emph{+i}) or by the molecule they belong to (\emph{+mol}). Mixed selections, \emph{e.g.} based on labels and indices, are not allowed within one command. The command can be repeated.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--dmap1D}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+out [dmap1D.out]}\\
+  defines the output file name.
+
+\emph{+s [species]} or \emph{+i [indices]} or \emph{+mol [molecule name]}\\
+  select the species to be used in the calculation using the atoms' names or their indices or the name of the molecules they belong to.
+  The species selection is done by providing a comma separated list of atom names.
+  The index selection can be done by providing a comma separated list of indices or in loop format B:E:(S), where the stride is optional.
+  The \emph{+mol} flag requires \emph{--top} flag, and the molecules are seleceted using the names given to them by the \emph{--top} command.
+
+\emph{+x}\\
+  sets the $x$ direction for the calculation of the 1D density profile.
+
+\emph{+y}\\
+  sets the $y$ direction for the calculation of the 1D density profile.
+
+\emph{+z}\\
+  sets the $z$ direction for the calculation of the 1D density profile.
+
+\emph{+nbin [100]}\\
+  defines the number of bins for the 1D density profile.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --dmap1D +x +s O 
+gpta.x --i coord.pdb --dmap1D +z +s O +out dmap.out
+gpta.x --i coord.pdb --dmap1D +z +s Ca +nbin 200 +out dmap.out
+gpta.x --i coord.pdb --dmap1D +z +i 1:300:3 +out dmap.out
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Computing 1D density profile
+...Output file.....................................: dmap.out
+...Atoms selection for --dmap1D
+......Selection command............................:
+......Atoms selected in the first group............:         520
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\vspace{0.5cm}
+\item[File output:]
+\begin{scriptsize}
+\begin{verbatim}
+# Position  | Density [atom/angstrom^3]
+    0.4320800000E+00     0.1376089546E-01
+    0.1296240000E+01     0.4867850937E-02
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

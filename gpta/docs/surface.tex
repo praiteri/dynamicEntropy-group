@@ -1,0 +1,51 @@
+\subsubsection{Create Surface}
+\index[action]{Create Surface}
+\index[command]{--surface}
+
+This action creates a new system unit cell orientated with the chosen Miller index parallel to the $z$ axis.
+The output file contains all the possible surface cuts across the centre of mass of each molecule present in the cell.
+The structures are all still 3D periodic and give the same X-ray (\emph{--xray}) scattering.
+Depending on the Miller indices that are chosen the output structure will be a supercell of the initial system.
+Note that the molecules must not be broken across the periodic boundary conditions for this action to work properly.
+If the atoms' chrges are present the cell dipole normal to the surface is also provided.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--surface}
+
+\vspace{0.5cm}
+\item[Prerequisite:] \emph{--top}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+out [surface.pdb]}\\
+  defines the output file name.
+
+\emph{+hkl [indices]}\\
+  selects the Miller indices of the surface to be create.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --surface +hkl 1,0,4
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Create Surface
+...Miller indices..................................: 1 0 4
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

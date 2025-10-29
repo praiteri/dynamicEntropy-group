@@ -1,0 +1,35 @@
+\subsubsection{Process Only The Last Frame}
+\index[action]{Process Only The Last Frame}
+\index[command]{--last}
+
+It is often of interest to extract only the last frame of a trajectory, without knowin {\em a priori} the total number of frames in the input file.
+This can be achieved with this command, without reading the input file(s) twice. 
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--last} \\
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --last
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{Verbatim}
+...
+_________________________________________________________________________________________________________
+Processing only the last frame
+_________________________________________________________________________________________________________
+...
+\end{Verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

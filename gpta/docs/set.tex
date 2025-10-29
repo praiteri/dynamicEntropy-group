@@ -1,0 +1,83 @@
+\subsubsection{Define Atoms' Properties}
+\index[action]{Define Atoms' Properties}
+\index[command]{--set}
+
+This action overrides some of the basic properties of the atoms in the system that can be used by other actions.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--set}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+s [species]} or \emph{+i [indices]} or \emph{+mol [molecule names]}\\
+  select the species to be used by the action.
+  The species selections are done by providing a comma separated list of atom names.
+  The index selections can be done by providing a comma separated list of indices or in loop format B:E:(S), where the stride is optional.
+  The \emph{+mol} flag requires \emph{--top} flag, and the molecules are seleceted using the names given to them by the \emph{--top} command.
+
+\emph{+l [new labels]}\\
+  defines the new atom names (labels) for the selected atoms.
+
+\emph{+q [new charges]}\\
+  defines the new atom charges for the selected atoms.
+
+\emph{+tq [TINKER types]}\\
+  defines the TINKER types for the selected atoms to be used in the \emph{--amoeba} action
+
+\vspace{0.5cm}  
+\item[Notes:]
+  The number of new labels, charges or TINKER types provided must be either:
+  \begin{itemize}
+  \item consistent with the number of different species that have been selected with \emph{+s}
+  \item one if the atoms have been selected with \emph{+i}
+  \item consistent with the number of atoms in the selected molecules if the \emph{+mol} flag has been used
+  \end{itemize}
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --top --set +s O2,H2 +l OW,HW
+gpta.x --i coord.pdb --top --set +i 1:300:3 +l OW
+gpta.x --i coord.pdb --top --set +mol M1 +l OW,HW,HW
+gpta.x --i coord.pdb --top --set +s O2,H2 +tq 1,2
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Modify atoms' Attributes
+...Atoms selected by label.........................: O2 H2
+...Renaming selected atoms as......................: OW HW
+_________________________________________________________________________________________________________
+...
+_________________________________________________________________________________________________________
+Modify atoms' Attributes
+...Atoms selected by molecule......................: M1
+...Renaming selected atoms as......................: OW HW HW
+_________________________________________________________________________________________________________
+...
+_________________________________________________________________________________________________________
+Modify atoms' Attributes
+...Atoms selected by index.........................: 1:300:3
+...Renaming selected atoms as......................: OW
+_________________________________________________________________________________________________________
+...
+_________________________________________________________________________________________________________
+Modify atoms' Attributes
+...Atoms selected by label.........................: O2 H2
+...Setting TINKER types to.........................: 1 2
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

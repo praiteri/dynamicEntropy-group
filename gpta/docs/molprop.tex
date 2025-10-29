@@ -1,0 +1,146 @@
+\subsubsection{Molecular Properties}
+\index[action]{Molecular Properties}
+\index[command]{--molprop}
+
+This action computes a variety of molecular properties of the system.
+The properties that can currently be computed are
+\begin{itemize}
+\item The molecular dipole. \\
+	In order to compute this property the atomic charges must be present in the input files or defined using the \emph{--define} action.
+	Regardless of the method, the atomic charges are set in the first frame and kept unchanged throughout the entire trajectory.
+	This is because not all coordinates formats contain the coordinates, but it could be easily changed by commenting a line in the \verb|readCoordinatesModule.F90| file, around line 335.
+\item The polar angle of the molecular dipole.\\
+	See the previous property for a discussion about the atomic charges.
+\item The polar angle for the vector normal to the plane defined by three atoms in the molecule.
+\item The angle between three atoms in the molecule.
+\item The torsional angle between four atoms in the molecule.
+\item The radius of gyration.\\
+\[
+  R_\mathrm{g}^2 \ \stackrel{\mathrm{def}}{=}\ 
+  \frac{1}{M} \sum_{k=1}^{N} m_k\left( \mathbf{r}_k - \mathbf{r}_0 \right)^2
+\]
+where $ \mathbf{r}_0$ is the position of the centre of mass, $\mathbf{r}_k$ and $m_k$ are the position and mass of atom $k$, and $M$ is the total mass of the $N$ selected atoms.
+\end{itemize}
+
+The properties can then dumped to a file (\emph{+dump}) or internally processed to compute
+\begin{itemize}
+\item their average:  \emph{+avg}
+\item their distribution: \emph{+dist}
+\item their average in slices normal to the $z$ direction: \emph{+distZ}
+\item thier 2D distribution with the $z$ coordinate of the molecule's centre of mass: \emph{+dist2D}
+\end{itemize}
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--molprop}
+
+\vspace{0.5cm}
+\item[Prerequisite:] \emph{--top}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+out [molprop.out]}\\
+  defines the output file name
+
+\emph{+id [molecule name]}\\
+  selects the molecule(s) to be used in the calculation.
+
+\emph{+normalZ [2,1,3]}\\
+  computes the cosine of the polar angle of the vector normal to the plane formed by the three atoms specified.
+
+\emph{+dipole}\\
+  computes the molecules' dipole moment, requires the charges to be defined.
+
+\emph{+dipoleZ}\\
+  computes the cosine of the polar angle of the molecules' dipole.
+
+\emph{+bond [1,2]}\\
+  computes the bond distance between the three atoms specified. 	
+  The first atom in the list is the central atom.
+
+\emph{+angle [2,1,3]}\\
+  computes the angle between the three atoms specified. 	
+  The first atom in the list is the central atom.
+
+\emph{+torsion [4,1,5,8]}\\
+  computes the torsion angle for the four atoms specified.
+
+\emph{+deg}\\
+  transforms the angles from radians to degrees
+
+\emph{+rgyr}\\
+  computes the radius of gyration of the molecules.
+
+\emph{+dumpSeq}\\
+  dumps the computed property to the output file sequentially and two empty lines are added to separate the data of the individual frames. 
+  This is the default option.
+
+\emph{+dump}\\
+  dumps the computed property to the output file, one line per frame and $N_{mol}$ columns.
+
+\emph{+avg}\\
+  computes the average of the property.
+
+\emph{+dist [0,4]}\\
+  computes the distribution of the property within the specified limits.
+  For the distribution of angles it is often useful to set the limits in terms of $\pi$.
+  This can be done by using the strings: \verb|pi|, \verb|-pi|, \verb|twopi|, \verb|-twopi|, \verb|pih|, \verb|-pih|, \verb|piq| and \verb|-piq|, which are interpreted as
+  $\pi$, $-\pi$, $2\pi$, $-2\pi$, $\pi/2$, $-\pi/2$, $\pi/4$ and $-\pi/4$, respectively.
+
+\emph{+distZ}\\
+  computes the average property in slices along the $z$ axes.
+
+\emph{+dist2D [0,4]}\\
+  computes the distribution of property within the specified limits in slices along the $z$ axes.
+
+\emph{+nbin [100]}\\
+  defines number of bins to be used in the calculation of the property's distribution.
+
+\emph{+nbinZ [100]}\\
+  defines number of slices to be used in the $z$ direction.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i c.pdb --top --molprop +id M1 +angle 1,2,3 +avg
+gpta.x --i c.pdb --top --molprop +id M1 +torsion 1,2,3,4 +dist -pi,pi +nbin 180
+gpta.x --i c.pdb --top --molprop +id M1 +dipole +dist 0,4 +nbin 50 +out dipole.out
+gpta.x --i c.pdb --top --molprop +id M1 +dipoleZ +distZ +nbinZ 100
+gpta.x --i c.pdb --top --molprop +id M1 +normalZ 1,2,3 +dist2D 0,pi +nbinZ 100 +nbin 90
+gpta.x --i c.pdb --top --molprop +id M1 +dipole +dump +out dipole.out
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Computing molecular properties
+...Output file.....................................: molprop.out
+...Molecule's type selected........................: M1
+...Number of molecules selected....................:        3137
+...Computing -> Covalent angle
+......Atom indices used............................: 2 1 3
+...Computing the property distribution
+......Distribution limits..........................:     90.0000       110.0000
+......Number of bins...............................:         100
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+%\vspace{0.5cm}
+%\item[File output:]
+%\begin{scriptsize}
+%\begin{verbatim}
+%...
+%\end{verbatim}
+%\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

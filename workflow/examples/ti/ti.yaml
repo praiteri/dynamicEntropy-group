@@ -1,0 +1,30 @@
+# Script output level: INFO, DEBUG...
+noise: DEBUG
+
+# If true only the directory structure is built
+dry_run: false
+
+# Define a set of variables to be used in the folder names and
+# in the commands.
+variables:
+    sys: ["fcc", "hcp"]
+    temp: [1000]
+
+# Set workspace and behavior for exiting folders
+# available options are ["replace", "create", "skip", "enter"]
+# default workspace: ./
+# default behaviour: enter
+workspace:
+    mode: replace
+    folders: "{{sys}}_{{temp}}"
+
+# List of commands to be executed in each folder
+commands:
+    - gpta --log gpta.0.log --i ../{{sys}}.pdb --repl 3,3,3 --o coord.lmp +map C,Co,W --o coord.pdb
+    - lmpgen -o lammps_npt.inp -v temp={{temp}} -v md=yes -v ff_file=../tersoff_refit_w2c.lmp -v ens=npt -v nsteps=100000
+    - lmpgen -o lammps_ti.inp -v temp={{temp}} -v ti=yes -v ff_file=../tersoff_refit_w2c.lmp -v ens=nvt -v nsteps=100000
+    - mpirun -np 16 lmp -i lammps_npt.inp -screen none -log lammps.0.log
+    - gpta --i coord.pdb trajectory.0.xtc --frames 10 --extract +system +s Co
+    - gpta --i averageSystem.pdb --o coord.lmp +map C,Co,W
+    - mpirun -np 16 lmp -i lammps_ti.inp -screen none -log lammps.1.log
+    

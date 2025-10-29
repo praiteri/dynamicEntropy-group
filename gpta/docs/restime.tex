@@ -1,0 +1,77 @@
+\subsubsection{Residence Time}
+\index[action]{Residence Time}
+\index[command]{--restime}
+
+This action computes the solvent residence time around selected solute atoms as
+\[
+F(t) = \sum_i \Theta(n_i-t)
+\]
+where the sum runs over all the exchange events in the coordination shell of the central atom(s), $n_i$ is the number of frames the molecule remained in the coordination shell and
+$\Theta$ is the heavy-side function, which is equal 1 for $t<n_i$ and 0 otherwise.
+In output also the distribution of exchange events is written.
+
+For efficiency reasons and to simplify the MPI implementation, the coordination shell of each selected atom is computed and stored for all the frames in the trajectory, which are then processed at the end in serial.
+This unfortunately requires to provide as input the total number of frames that will be analysed.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--restime}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+out [restime.out]}\\
+  defines the output file name
+
+\emph{+s [species]} or \emph{+i [indices]} or \emph{+mol [molecule names]}\\
+  select the species to be used by the action.
+  The species selections are done by providing a comma separated list of atom names.
+  The index selections can be done by providing a comma separated list of indices or in loop format B:E:(S), where the stride is optional.
+  The \emph{+mol} flag requires \emph{--top} flag, and the molecules are seleceted using the names given to them by the \emph{--top} command.
+
+\emph{+rcut [cutoff]}\\
+  sets the cutoff for the definition of the coordination shell.
+
+\emph{+ntraj [1000]}\\
+  sets the number of frames in the trajectory.
+  This is required for efficiency reasons.
+
+\emph{+nmax [10]}\\
+  sets maximum number of atoms in the coordination shell.
+  This is required for efficiency reasons.
+
+\emph{+thres [0]}\\
+  sets the threshold in units of frames for an atom to be considered inside or outside of the coordination shell.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --restime +s Ca OW +rcut 3.2 +thres 1 +ntraj 1000
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+...
+\end{verbatim}
+\end{scriptsize}
+
+\vspace{0.5cm}
+\item[File output:]
+\begin{scriptsize}
+\begin{verbatim}
+# Frames   | Survival func | Exchange probability
+     0          1.00000          0.00000
+     1          0.99798          0.00000
+     2          0.99706          0.22976
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

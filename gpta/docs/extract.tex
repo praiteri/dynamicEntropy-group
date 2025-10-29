@@ -1,0 +1,148 @@
+\subsubsection{Extract System Properties}
+\index[action]{Extract System Properties}
+\index[command]{--extract}
+
+This action extracts a property of the system, which can then be written to a file (\emph{+dump}), averaged (\emph{+avg}) or used to compute its distribution (\emph{+dist}).
+The action can be used multiple times, but only one property can be computed by each occurrence.
+The properties that can currently be extracted are:
+\begin{itemize}
+\item The system volume
+\item The cell lengths and angles
+\item The cell matrix
+\item The system density
+\item The dielectric constant
+\item The moment of Inertia tensor for the selected atoms
+\item The position of one or more atoms
+\item The distance between two atoms
+\end{itemize}
+With this command it is also possible to compute the average cell and write out the coordinates of the last frame with the coordinates rescaled to fit inside the average cell (\emph{+system}).
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--extract}
+
+\vspace{0.5cm}  
+\item[List of flags:] 
+\emph{+out [extract.out]}\\
+  defines the output filename.
+  If this flag is not present the output will be written on the screen only.
+
+\emph{+dump}\\
+  dumps property in a file.
+
+\emph{+avg}\\
+  computes the average of the property.
+
+\emph{+histo [0,1]}\\
+  computes the histogram of the property in the given range.
+
+\emph{+prob [0,1]}\\
+  computes the probability distribution of the property in the given range.
+
+\emph{+nbin [100]}\\
+  sets the number of bins for the distribution.
+
+\emph{+coord}\\
+  extracts the $x$, $y$ and $z$ coordinates of the selected atoms (maximum 150 atoms can be selected).
+
+\emph{+volume}\\
+  extracts the cell volume.
+
+\emph{+density}\\
+  extracts the density of the system.
+
+\emph{+cell}\\
+  extracts the simulation cell as $|a|\ |b|\ |c|\ \alpha\ \beta\ \gamma$.
+
+\emph{+hmat}\\
+  extracts the simulation cell as the cell matrix $\vec{a}\ \vec{b}\ \vec{c}$.
+
+%\emph{+system [+out averageSystem.pdb] [+avg Na,Cl]]}\\
+\emph{+system [+out averageSystem.pdb]}\\
+  computes the average simulation cell and writes the coordinates from the last frame rescaled to the average cell.
+  If the \emph{+s} flag is also used the output file will contain the coordinates of the selected atoms and the scaled final coordinates of the others.
+  The flag accepts a comma separated list of species, whose positions will be averaged, as an optional argument; by default all positions are averaged.
+  For the non selected atoms their last positions (scaled) are written out instead.
+  This is useful to compute the average position of the atoms in a slab, which is in contact with water.
+  The average positions are computed in fractional coordinates so that the command could work with NPT trajectories.
+  Note that there is no check for whether the atoms are being re-wrapped across the PBC boundaries during the simulation.
+  If that is the case, atoms that cross the boundary will have an average position somewhere in the middle of the cell.
+  In order to mitigate that problem something like this can be included in the command line before the \emph{--extract} command:
+  \emph{\dots --unwrap --fixcom +s Na,Cl +initial --top \dots}\\
+  which unwraps the coordinated and fixes the centre of mass position to the initial one.
+  The \emph{--top} command ensures that any molecules are rebuilt before being written out.
+  The \emph{+out} flag allows for defining the name of the output coordinates file.
+  The output file name for the coordinates is optional.
+
+\emph{+inertia}\\
+  extracts the eigenvalues of the inertia tensor of the selected atoms.
+
+\emph{+diel}\\
+  extracts the dielectric constant of the system (it requires the atomic charges).
+
+\emph{+distance +i [indices]}\\
+  extracts the distance between two atoms that can be selected with the \emph{+i} flag.
+
+\emph{+test}\\
+  empty container for a one off implementation of a property to extract.
+
+\emph{+s [species]} or \emph{+i [indices]} or \emph{+mol [molecule name]}\\
+  select the species to be used in the calculation using the atoms' names or their indices or the name of the molecules they belong to.
+  The species selection is done by providing a comma separated list of atom names.
+  The index selection can be done by providing a comma separated list of indices or in loop format B:E:(S), where the stride is optional.
+  The \emph{+mol} flag requires \emph{--top} flag, and the molecules are seleceted using the names given to them by the \emph{--top} command.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb traj.dcd --extract +coord +i 10,11
+gpta.x --i coord.pdb traj.dcd --extract +volume +histo +out volume.dist
+gpta.x --i coord.pdb traj.dcd --extract +density +prob +out density.dist
+gpta.x --i coord.pdb traj.dcd --extract +cell +out cell.out
+gpta.x --i coord.pdb traj.dcd --extract +hmat +avg
+gpta.x --i coord.pdb traj.dcd --extract +system
+gpta.x --i coord.pdb traj.dcd --extract +system +s Na,Cl
+gpta.x --i coord.pdb traj.dcd --extract +system +out averageSystem.pdb
+gpta.x --i coord.pdb traj.dcd --extract +inertia +dump +out inertia.dat
+gpta.x --i coord.pdb traj.dcd --extract +diel +out diel.dat
+gpta.x --i coord.pdb traj.dcd --extract +distance +i 1,3
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+...Atoms selection for --extracts
+......Selection command............................:
+......Atoms selected in the first group............:           2
+_________________________________________________________________________________________________________
+System property
+...Extracting......................................: Cell Parameters
+     1        49.318       48.550       84.042       90.000       90.000       90.000
+     2        49.318       48.550       84.067       90.000       90.000       90.000
+     3        49.318       48.550       84.250       90.000       90.000       90.000
+     4        49.318       48.550       84.302       90.000       90.000       90.000
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\vspace{0.5cm}
+\item[File output:]
+\begin{scriptsize}
+\begin{verbatim}
+#System property
+#...Extracting Bond Length
+     1         3.0341183233
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

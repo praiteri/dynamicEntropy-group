@@ -1,0 +1,29 @@
+# Script output level: INFO, DEBUG...
+noise: DEBUG
+
+# If true only the directory structure is built
+dry_run: false
+
+# Define a set of variables to be used in the folder names and
+# in the commands.
+variables:
+    dir: ["wc", "cw"]
+
+# Set workspace and behavior for exiting folders
+# available options are ["replace", "create", "skip", "enter"]
+# default workspace: ./
+# default behaviour: enter
+workspace:
+    mode: replace
+    folders: np_{{dir}}
+
+# List of commands to be executed in each folder
+commands:
+    - gpta --log gpta.0.log --i ../WC.pdb --shift -0.7,-0.4,-0.7 --repl 40,40,20 --fixcom +s W,C +centre --o tmp.0.pdb
+    - gpta --log gpta.1.log --i tmp.0.pdb --cluster +hkl 1,0,0 1,-1,0 0,1,0 0,0,1 +thick 25,25,25,20 +asym 1.8,17,2,0.75 +out tmp.1.xyz
+    - gpta --log gpta.2.log --i tmp.1.xyz +cell 90 --fixcom +s C,W +centre --o tmp.2.pdb
+    - gpta --log gpta.3.log --i tmp.2.pdb --top --add solvent +atom Co +n 64000 +rmin 1 +rclash 3 --o tmp.3.pdb
+    - gpta --log gpta.4.log --i tmp.3.pdb --o coord.lmp +map C,Co,W
+    - lmpgen -o lammps.inp -m md,minimise -v ens=npt -v npttype=aniso -v temp:300 -v md=yes -v minimise=yes
+    - mv tmp.3.pdb coord.pdb
+    - rm tmp.*

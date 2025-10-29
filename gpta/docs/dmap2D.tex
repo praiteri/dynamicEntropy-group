@@ -1,0 +1,98 @@
+\subsubsection{Density Map (2D)}
+\index[action]{Density Map (2D)}
+\index[command]{--dmap2D}
+
+This action computes the 2D density map projected on an arbitrary plane defined by its Miller indices.
+The location of the plane in the cell is chosen by defining the origin of the axes of the new cell.
+The calculation is done by computing the surface unit cell, normal to the defined crystallographic plane, and projecting the selected atoms onto it. Only the atoms within the selected thickness are considered.
+Because the projection plane is defined by the Miller indices, GPTA searches for the corresponding surface unit cell to use for the grid.
+Although the smallest surface unit cell is chosen, its orientation in the cartesian space is not unique, hence care must be paid when interpreting the results.
+However, it is also possible to manually define a new cell and in that case the density map is computed on the (0,0,1) plane.
+Depending on the orientation of the plane, portions of the surface cell may not contain any atoms, however it is possible to replicate the system to fill the space and have a complete 2D map (\emph{+fill}).
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--dmap2D}
+
+\vspace{0.5cm}
+\item[List of flags:] 
+\emph{+out [dmap2D.out]}\\
+  defines the output file name.
+
+\emph{+s [species]} or \emph{+i [indices]} or \emph{+mol [molecule name]}\\
+  select the species to be used in the calculation using the atoms' names or their indices or the name of the molecules they belong to.
+  The species selection is done by providing a comma separated list of atom names.
+  The index selection can be done by providing a comma separated list of indices or in loop format B:E:(S), where the stride is optional.
+  The \emph{+mol} flag requires \emph{--top} flag, and the molecules are seleceted using the names given to them by the \emph{--top} command.
+
+\emph{+hkl [0,0,1]}\\
+  sets the Miller indices of the plane to project the atoms' density onto.
+
+\emph{+cell [hmat]}\\
+  allows for defining a new system cell via the use of three three vectors, that must for a right-handed set.
+  These vectors will become the new new metric matrix ($[\vec{a},\vec{b},\vec{c}]$) for the system and the 2D density map will  be calculated on the (0,0,1) plane.
+
+\emph{+origin [0.d0,0.d0,0.d0]}\\
+  defines the origin of the 2D density map.
+
+\emph{+thick [1.d0]}\\
+  sets the thickness of the ``slice'' use for the projection.
+
+\emph{+nbin [100,100]}\\
+  sets the number of bins for the density map.
+
+\emph{+fill [0]}\\
+  sets the number of replicas to use for filling the surface unit cell.
+  This flag is used to replicate the system to have a 2D density map on the entire surface unit cell.
+  The number indicates the number of replicas in the positive and negative directions of the cartesian axes.
+  If 0 is chosen only the initial cell is used, if 1 set the program uses 27 replicas, etc.
+  The larger the number the slower the calculation becomes.
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --dmap2D +s O2 +hkl 1,0,0 +origin 1,0,0 +nbin 50,50 +out dmap2D.out
+gpta.x --i coord.pdb --dmap2D +s O2 +hkl 1,1,0 +origin 46.12,0,0  +nbin 50,50 +thick 1.
+gpta.x --i coord.pdb --dmap2D +s O2 +hkl 1,1,0 +origin 0,0,0 +thick 1. +fill 1
+gpta.x --i coord.pdb --dmap2D +s O2 +cell 46.12,0,0,-30.7036,44.9762,0,0,0,86.4160
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+_________________________________________________________________________________________________________
+Compute 2D density map in a plane
+...Miller indices of the plane.....................: 1 1 0
+...Surface cell origin.............................:     46.1200         0.0000         0.0000
+...Surface vector A................................:    -30.7036        44.9762         0.0000
+...Surface vector B................................:     -0.0000        -0.0000        86.4160
+...Slice thickness.................................:      1.0000
+...Number of replicas to fill surface cell.........:           0
+...Number of bins..................................: 50 50
+...Atoms selection for --dmap2D
+......Selection command............................: +s O2
+......Atoms selected in the first group............:        3137
+_________________________________________________________________________________________________________
+...
+\end{verbatim}
+\end{scriptsize}
+
+\vspace{0.5cm}
+\item[File output:]
+\begin{scriptsize}
+\begin{verbatim}
+# X [angstrom] | Y [angstrom] | Density [atom/angstrom^3]
+      0.47545      0.86416      0.00050
+      0.95090      0.86416      0.00150
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}

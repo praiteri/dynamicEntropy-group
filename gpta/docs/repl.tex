@@ -1,0 +1,35 @@
+\subsubsection{Replicate Simulation Cell}
+\index[action]{Replicate Simulation Cell}
+\index[command]{--repl}
+
+This action replicates the input structure along the three crystallographic directions.
+
+\hdashrule[0.5ex][x]{\textwidth}{1pt}{3mm}
+
+\begin{itemize}
+\item[Command:] \emph{--repl [replicas]}
+
+\vspace{0.5cm}
+\item[Prerequisite:] \emph{--top}
+
+\vspace{0.5cm}  
+\item[Examples:]
+\begin{small}
+\begin{Verbatim}[frame=single]
+gpta.x --i coord.pdb --repl 2,2,1
+gpta.x --i coord.pdb --repl 1 2 3
+\end{Verbatim}
+\end{small}
+
+\vspace{0.5cm} 
+\item[Screen output:]
+\begin{scriptsize}
+\begin{verbatim}
+...
+...
+\end{verbatim}
+\end{scriptsize}
+
+\end{itemize}
+
+\hdashrule{\textwidth}{1pt}{}
