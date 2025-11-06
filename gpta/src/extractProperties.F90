@@ -98,6 +98,7 @@ contains
         else if (outputFile % fname /= "NULL") then
           call message(0,"......Output file",str=outputFile % fname)
         end if
+        call message(2)
   
         if (atomSelection) then
           if (resetFrameLabels) then
@@ -150,9 +151,9 @@ contains
           end if
         end if
       end if
+      call message(2)
 
       call finaliseAction(a)
-      call message(2)
     end if
 
   end subroutine extractSystemProperties
@@ -224,17 +225,13 @@ contains
 
     if ( count([distProperty,averageMultiProperty]) == 0 ) dumpProperty = .true.
 
-    call assignFlagValue(actionCommand,"+out",outputFile % fname,"NULL")
+    call assignFlagValue(actionCommand,"+out",outputFile % fname,"properties.out")
     if (.not. dumpCoordinatesLocal) then
-      if (outputFile % fname /= "NULL") then
-        call initialiseFile(outputFile, outputFile % fname)
-        write(outputFile % funit,"(a)")"#System property"
-        write(outputFile % funit,'(a)')"#...Extracting "//trim(a % sysprop % name)
-        if (averageMultiProperty) write(outputFile % funit,'(a)')"#......Average and standard deviation"
-        if (distProperty        ) write(outputFile % funit,'(a)')"#......Distribution"
-      else
-        outputFile % funit = 6
-      end if
+      call initialiseFile(outputFile, outputFile % fname)
+      write(outputFile % funit,"(a)")"#System property"
+      write(outputFile % funit,'(a)')"#...Extracting "//trim(a % sysprop % name)
+      if (averageMultiProperty) write(outputFile % funit,'(a)')"#......Average and standard deviation"
+      if (distProperty        ) write(outputFile % funit,'(a)')"#......Distribution"
     end if
 
   end subroutine initialiseAction
@@ -294,7 +291,7 @@ contains
     else
       call workData % dump(ID, outputFile % funit)
     end if
-    call message(4)
+    call message(2)
 
   end subroutine finaliseAction
 

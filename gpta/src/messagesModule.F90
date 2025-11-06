@@ -165,11 +165,11 @@ subroutine message(istop,comment,icol,i,r,iv,rv,str,l)
 
     else if (present(rv)) then
       n = size(rv)
-      fmt0 = "('['"
+      fmt0 = "('[',"
       do idx=1,n
         call get_format_r(rv(idx), fmt_tmp)
-        fmt0 = trim(fmt0)//trim(fmt_tmp)
-        if (idx<n) fmt0 = trim(fmt0)//"',',2x"
+        fmt0 = trim(fmt0)//trim(fmt_tmp)//","
+        if (idx<n) fmt0 = trim(fmt0)//"',',2x,"
       enddo
       fmt0 = trim(fmt0)//"']')"
       write(str1,fmt0) rv
