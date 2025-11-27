@@ -1,0 +1,57 @@
+debug: False
+input:
+    coordinates : coord.pdb
+    forcefield : caco3.xml
+
+forcefield:
+    nonbondedCutoff : 0.9
+    ewaldErrorTolerance : 1e-5
+    nonbondedMethod : PME
+    switchDistance : null
+    useDispersionCorrection : False
+    constraints : null
+    rigidWater : False
+
+md:
+    ensemble : NVT
+    thermostat : LANG
+    timestep : 0.001 
+    numberOfSteps : 10000
+    temperature : 300
+    thermostatParameter : 1.0
+
+metadynamics: 
+    height        : 2.5
+    frequency     : 1000
+    biasFactor    : 5
+    saveFrequency : 1000
+    biasDir       : "./"
+     
+    cv1:
+        type       : "pair"
+        expression : "r"
+        lowerLimit : 0.0
+        upperLimit : 1.5
+        sigma      : 0.01
+        index1     : [0]
+        index2     : [1]
+        gridWidth  : 100
+        cutoff     : 1.2
+        periodic   : false
+        uwall      : 1.1
+        uwallK     : 14472
+        lwall      : null
+        lwallK     : null
+         
+    cv2: 
+        type       : "pair"
+        expression : "0.5*erfc((r-0.33)/0.045)"
+        lowerLimit : 2
+        upperLimit : 10
+        sigma      : 0.1
+        index1     : [0]
+        type2      : "OW"
+        gridWidth  : 100
+        cutoff     : 1.0
+        periodic   : false
+     

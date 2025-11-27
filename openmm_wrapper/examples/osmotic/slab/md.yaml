@@ -1,0 +1,27 @@
+input:
+    coordinates : coord.pdb
+    forcefield : newFF.xml
+
+md:
+    numberOfSteps : 1e8
+    temperature : 150
+    timestep : 0.002
+    reportInterval : 10000
+    #thermostat : CSVR
+    #restartFrom : restart.0.xml
+
+osmotic:
+    reportInterval : 1000
+    computeInterval : 1000
+    sampleLength : 100
+    force : osmoticWall
+    geometry : 
+        plane :
+            axis : x
+            pos : 5
+            kappa : 100.
+            species : Kr
+    gcmd : 
+        parm : d0
+        pext : 10
+        tau : 1.0
