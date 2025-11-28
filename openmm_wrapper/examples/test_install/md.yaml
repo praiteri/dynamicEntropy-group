@@ -1,0 +1,6 @@
+energy: true
+forcefield:
+    useDispersionCorrection: true
+input:
+    coordinates: coord.pdb
+    forcefield: forcefield.xml

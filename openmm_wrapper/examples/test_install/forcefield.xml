@@ -1,0 +1,36 @@
+<!--
+#  The flexible SPC water model of Wu et al:
+#      Y. Wu, H.L. Tepper and G.A. Voth, J. Chem. Phys., 124, 024503 (2006)
+#      https://doi.org/10.1063/1.2136877
+-->
+<ForceField>
+    <AtomTypes>
+        <Type name="spcfw-O" type="spcfw-O" class="spcfw-O" mass="16.000" element="O" />
+        <Type name="spcfw-H" type="spcfw-H" class="spcfw-H" mass="1.0100" element="H" />
+    </AtomTypes>
+    
+    <Residues>
+        <Residue name="HOH">
+            <Atom name="O1" type="spcfw-O" charge="-0.820000" />
+            <Atom name="H2" type="spcfw-H" charge=" 0.410000" />
+            <Atom name="H3" type="spcfw-H" charge=" 0.410000" />
+            <Bond atomName1="O1" atomName2="H2" />
+            <Bond atomName1="O1" atomName2="H3" />
+        </Residue>
+    </Residues>
+    
+    <HarmonicBondForce>
+        <Bond class1="spcfw-O"  class2="spcfw-H"  length="0.101200" k="443155.605000" />
+    </HarmonicBondForce>
+    
+    <HarmonicAngleForce>
+        <Angle class1="spcfw-H" class2="spcfw-O" class3="spcfw-H" angle="1.97641" k="317.567" />
+    </HarmonicAngleForce>
+
+    <NonbondedForce coulomb14scale="0.83333333333333" lj14scale="0.0">
+        <UseAttributeFromResidue name="charge" />
+        <Atom type="spcfw-O" sigma="0.3165492" epsilon="0.6503089" />
+        <Atom type="spcfw-H" sigma="1.0" epsilon="0.0" />
+    </NonbondedForce>
+
+</ForceField>
