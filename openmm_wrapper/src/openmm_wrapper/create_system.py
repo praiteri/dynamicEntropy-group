@@ -140,7 +140,21 @@ def createSystem(setup, first=True):
         setup.dumpParametersFF(prmFF)
 
     # Create the system
+    logger.debug("Creating system ...")
+    for k, v in prmFF.items():
+        logger.debug(f"  {k:30s} = {v}")
+
+    # Check that the residue and atoms names for the water are the ones
+    # expected by openMM for rigid water models
+    if prmFF["rigidWater"]:
+        checkWaterNames(modeller.topology)
+    # Ensure the constraints method is correct
+    prmFF["constraints"] = fixConstraintsMethod(prmFF["constraints"])
+
     system = forcefield.createSystem(modeller.topology, **prmFF)
+
+    if prmFF["rigidWater"] or prmFF["constraints"] is not None:
+        checkConstraints(system, modeller.topology)
 
     ##################################################
     if first:
@@ -270,3 +284,84 @@ def createSystem(setup, first=True):
     #             force.setUseDispersionCorrection(False)
 
     return modeller, system
+
+
+def checkWaterNames(topology):
+    """
+    Check that the residue and atoms names for the water are the ones
+    expected by openMM for rigid water models
+
+    Parameters
+    ----------
+        topology:
+            openMM topology object
+    """
+    import sys
+
+    logger = logging.getLogger("dynamicEntropy")
+    for res in topology.residues():
+        if res.name in ["HOH", "WAT", "TIP3"]:
+            expected_atom_names = ("O", "H1", "H2")
+            actual_atom_names = tuple(atom.name for atom in res.atoms())
+            if actual_atom_names != expected_atom_names:
+                logger.error(
+                    f"Water residue '{res.name}' has unexpected atom names: {actual_atom_names}.\nExpected names are: {expected_atom_names}."
+                )
+                sys.exit(1)
+    logger.debug("Water residue and atom names are correct for a rigid water model")
+    return
+
+
+def checkConstraints(system, topology):
+    """
+    Check that the residue and atoms names for the water are the ones
+    expected by openMM for rigid water models
+
+    Parameters
+    ----------
+        topology:
+            openMM topology object
+    """
+    logger = logging.getLogger("dynamicEntropy")
+
+    # Count water molecules
+    num_waters = sum(
+        1 for res in topology.residues() if res.name in ["HOH", "WAT", "TIP3"]
+    )
+    expected_constraints = num_waters * 3  # 3 constraints per rigid water
+
+    # Count constraints
+    num_constraints = system.getNumConstraints()
+
+    logger.debug(f"Total constraints applied: {num_constraints}")
+    logger.debug(f"Number of water molecules: {num_waters}")
+    logger.debug(f"Expected water constraints: {expected_constraints}")
+
+    # Check constraint details
+    logger.debug("\nFirst 10 constraints:")
+    for i in range(min(10, num_constraints)):
+        atom1, atom2, distance = system.getConstraintParameters(i)
+        logger.debug(f"Constraint {i}: atoms {atom1}-{atom2}, distance {distance}")
+    return
+
+
+def fixConstraintsMethod(str):
+    """
+    Docstring for fixConstraintsMethod
+
+    :param str: Description
+    """
+    if str is None:
+        return None
+    elif str.lower() == "none":
+        return None
+    elif str.lower() == "allbonds":
+        return app.AllBonds
+    elif str.lower() == "hbonds":
+        return app.HBonds
+    elif str.lower() == "hangles":
+        return app.HAngles
+    elif str in [app.AllBonds, app.HBonds, app.HAngles]:
+        return str
+    else:
+        raise ValueError("Invalid constraints method")
