@@ -1,0 +1,38 @@
+#------------------------------------------#
+openMM parameters ...
+  Version                                  = 8.4
+  Platform                                 = HIP
+  Precision                                = mixed
+  DeviceIndex                              = 0
+  runID                                    = 0
+Opening coordinates ...
+  file                                     = coord.pdb
+Opening forcefield ...
+  file                                     = forcefield.xml
+  nonbondedCutoff                          = 0.9 nm
+  ewaldErrorTolerance                      = 1e-05
+  nonbondedMethod                          = PME
+  useDispersionCorrection                  = True
+  constraints                              = None
+  rigidWater                               = False
+  switchDistance                           = None
+Centre of Mass Motion Remover is Enabled
+System details ...
+  Periodic cell vector a (nm)              =  2.4860  0.0000  0.0000
+  Periodic cell vector b (nm)              =  0.0000  2.4860  0.0000
+  Periodic cell vector c (nm)              =  0.0000  0.0000  2.4860
+  Number of atoms                          = 1560
+  Number of residue types                  = 1
+    Number of residues of type HOH         = 520
+  Total charge                             = 0.000     
+Simulation details ...
+  Nonbonded method                         = PME
+  Global cutoff distance                   = 0.9 nm
+  PME parameters                           = [3.654825709716916, 63, 63, 63]
+  Ewald tolerance                          = 1e-05
+#--- Single point energy ------------------#
+  Context parameters ...
+  Total potential energy (kJ/mol)          = -20905.565780286066 
+  HarmonicBondForce (kJ/mol)               = 2285.884585992937 
+  NonbondedForce (kJ/mol)                  = -24883.540864778028 
+  HarmonicAngleForce (kJ/mol)              = 1692.0904840150497 
