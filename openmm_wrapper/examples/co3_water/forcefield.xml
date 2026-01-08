@@ -1,0 +1,134 @@
+<!--
+#  Library for new potentials post-standard state correction
+#
+#  This library contains:
+#      The force field for Alkaline-Earth carbonates from:
+#      B. Armstrong, A. Silvestri, R. Demichelis, P. Raiteri and J.D. Gale
+#      Phil. Trans. Roy. Soc. A, 381, 20220250 (2023)
+#      https://doi.org/10.1098/rsta.2022.0250
+#
+#  The flexible SPC water model of Wu et al:
+#      Y. Wu, H.L. Tepper and G.A. Voth, J. Chem. Phys., 124, 024503 (2006)
+#      https://doi.org/10.1063/1.2136877
+-->
+<ForceField>
+    <AtomTypes>
+        <Type name="spcfw-O" type="spcfw-O" class="spcfw-O" mass="16.000" element="O" />
+        <Type name="spcfw-H" type="spcfw-H" class="spcfw-H" mass="1.0100" element="H" />
+
+        <Type name="Mg" type="Mg" class="Mg" mass="24.305" element="Mg" />
+        <Type name="Ca" type="Ca" class="Ca" mass="40.078" element="Ca" />
+        <Type name="Sr" type="Sr" class="Sr" mass="87.620" element="Sr" />
+        <Type name="Ba" type="Ba" class="Ba" mass="137.33" element="Ba" />
+        
+        <Type name="carb-C" type="carb-C" class="carb-C" mass="12.010" element="C" />
+        <Type name="carb-O" type="carb-O" class="carb-O" mass="16.000" element="O" />
+    </AtomTypes>
+    
+    <Residues>
+        <Residue name="HOH">
+            <Atom name="O1" type="spcfw-O" charge="-0.820000" />
+            <Atom name="H2" type="spcfw-H" charge=" 0.410000" />
+            <Atom name="H3" type="spcfw-H" charge=" 0.410000" />
+            <Bond atomName1="O1" atomName2="H2" />
+            <Bond atomName1="O1" atomName2="H3" />
+        </Residue>
+
+        <Residue name="Mg">
+            <Atom name="Mg" type="Mg" charge="2.000000" />
+        </Residue>
+        <Residue name="Ca">
+            <Atom name="Ca" type="Ca" charge="2.000000" />
+        </Residue>
+        <Residue name="Sr">
+            <Atom name="Sr" type="Sr" charge="2.000000" />
+        </Residue>
+        <Residue name="Ba">
+            <Atom name="Ba" type="Ba" charge="2.000000" />
+        </Residue>
+
+        <Residue name="CO3">
+            <Atom name="C1" type="carb-C" charge=" 1.423285" />
+            <Atom name="O2" type="carb-O" charge="-1.141095" />
+            <Atom name="O3" type="carb-O" charge="-1.141095" />
+            <Atom name="O4" type="carb-O" charge="-1.141095" />
+            <Bond atomName1="C1" atomName2="O2" />
+            <Bond atomName1="C1" atomName2="O3" />
+            <Bond atomName1="C1" atomName2="O4" />
+        </Residue>
+    </Residues>
+    
+    <HarmonicBondForce>
+        <Bond class1="spcfw-O"  class2="spcfw-H"  length="0.101200" k="443155.605000" />
+        
+        <Bond class1="carb-C"   class2="carb-O"   length="0.130420" k="394134.471050" />
+    </HarmonicBondForce>
+    
+    <HarmonicAngleForce>
+        <Angle class1="spcfw-H" class2="spcfw-O" class3="spcfw-H" angle="1.97641" k="317.567" />
+
+        <Angle class1="carb-O"  class2="carb-C"  class3="carb-O"  angle="2.0944" k="1276.88" />
+    </HarmonicAngleForce>
+
+    <NonbondedForce coulomb14scale="0.83333333333333" lj14scale="0.0">
+        <UseAttributeFromResidue name="charge" />
+        <!--
+        <Atom type="spcfw-O" sigma="0.3165492" epsilon="0.6503089" />
+        -->
+        <Atom type="spcfw-O" sigma="0.3165492" epsilon="0.0" />
+        <Atom type="spcfw-H" sigma="1.0" epsilon="0.0" />
+
+        <Atom sigma="1.0" epsilon="0.0" type="Mg"       />
+        <Atom sigma="1.0" epsilon="0.0" type="Ca"       />
+        <Atom sigma="1.0" epsilon="0.0" type="Sr"       />
+        <Atom sigma="1.0" epsilon="0.0" type="Ba"       />
+
+        <Atom sigma="1.0" epsilon="0.0" type="carb-C"   />
+        <Atom sigma="1.0" epsilon="0.0" type="carb-O"   />
+    </NonbondedForce>
+
+    <Script>
+# Global cutoff
+#@#set forcefield nonbondedCutoff 0.9
+#@#set forcefield customSwitchDistance 0.8
+#@#set forcefield lj14Scale 0.5
+
+# Conversion factors eV -> kJ/mol and A -> nm
+ev2kj = 96.485
+a2nm = 0.1
+cc6 = ev2kj*a2nm**6
+cc12 = ev2kj*a2nm**12 
+ck2 = ev2kj/a2nm**2 
+ck4 = ev2kj/a2nm**4
+
+# List of available Custom forcefields
+#   lj: 4*e*[(s/d)^12 - (s/d)^6] :: e, s
+# buck: A*exp(-d/rho) - C/d^6    :: A, rho, C
+#   AB: A/d^12 - B/d^6           :: A, B
+
+# Force field parameters must be in the same order as defined in customForceFields
+customForceFieldParameters = [
+
+{"ff":"lj"  , "type1":"spcfw-O", "type2":"spcfw-O",  "params":{"e":0.6503089, "s":0.3165492 },},
+
+{"ff":"lj"   , "type1":"Mg"       , "type2":"spcfw-O"  , "params":{"e":ev2kj*0.001137, "s":a2nm*2.72 },},                      
+{"ff":"lj"   , "type1":"Ca"       , "type2":"spcfw-O"  , "params":{"e":ev2kj*0.000950, "s":a2nm*3.25 },},                      
+{"ff":"lj"   , "type1":"Sr"       , "type2":"spcfw-O"  , "params":{"e":ev2kj*0.000776, "s":a2nm*3.52 },},                      
+{"ff":"lj"   , "type1":"Ba"       , "type2":"spcfw-O"  , "params":{"e":ev2kj*0.000657, "s":a2nm*3.82 },},                      
+
+{"ff":"buck" , "type1":"carb-O"   , "type2":"spcfw-O"  , "params":{"A":ev2kj*12534.455133, "rho":a2nm*0.202, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"carb-C"   , "type2":"spcfw-O"  , "params":{"A":ev2kj*12534.455133, "rho":a2nm*0.28, "C":cc6*0.0 },},  
+{"ff":"buck" , "type1":"carb-O"   , "type2":"spcfw-H"  , "params":{"A":ev2kj*340.0000, "rho":a2nm*0.217, "C":cc6*0.0 },},     
+
+{"ff":"buck" , "type1":"Mg"       , "type2":"carb-O"   , "params":{"A":ev2kj*3336.5869, "rho":a2nm*0.244667, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Ca"       , "type2":"carb-O"   , "params":{"A":ev2kj*8741.2801, "rho":a2nm*0.244960, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Sr"       , "type2":"carb-O"   , "params":{"A":ev2kj*3273.9620, "rho":a2nm*0.283096, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Ba"       , "type2":"carb-O"   , "params":{"A":ev2kj*15472.601, "rho":a2nm*0.255163, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"carb-O"   , "type2":"carb-O"   , "params":{"A":ev2kj*75032.644, "rho":a2nm*0.198913, "C":cc6*28.0 },},
+
+]
+customImproperParameters = [
+    {"centre":"carb-C" , "params":{"k2" : ck2*13.647 , "k4" : ck4*360.0 } } ,
+]
+    </Script>
+</ForceField>
