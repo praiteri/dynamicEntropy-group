@@ -184,6 +184,26 @@ def read_pdb_coordinates(file_path, unit="A"):
     return coordinates, cell
 
 
+def get_atomic_coordinates_from_topology(settings, topology, coordinates):
+    import openmm.unit as unit
+    import openmm_wrapper as my
+
+    types = my.inputToList(settings["species"])
+    expr = settings["expr"].replace("X", "x").replace("Y", "y").replace("Z", "z")
+    positions_list = []
+    for atom in topology.atoms():
+        x, y, z = coordinates[atom.index].value_in_unit(unit.nanometer)
+        if eval(expr) and atom.name in types:
+            atom_data = {
+                "atom_name": atom.name,
+                "atom_number": atom.index + 1,
+                "coord": [x, y, z],
+            }
+            positions_list.append(atom_data)
+
+    return positions_list
+
+
 def write_pdb_coordinates(file_path, cell, atoms):
     """
     COLUMNS        DATA  TYPE    FIELD        DEFINITION

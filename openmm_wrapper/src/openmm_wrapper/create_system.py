@@ -160,7 +160,12 @@ def createSystem(setup, first=True):
 
     # Add restratints if required
     if setup.config["restraint"] is not None:
-        my.addRestraints(setup.config["restraint"], system, modeller.topology)
+        my.addRestraints(
+            setup.config["restraint"],
+            system,
+            modeller.topology,
+            coordinates=modeller.positions,
+        )
 
     ##################################################
     # global_vars_before_execution = dict(globals())
@@ -225,28 +230,38 @@ def createSystem(setup, first=True):
         )
 
     ##################################################
-
-    if setup.config["forcefield"]["CMMotionRemover"] is False:
-        for n, force in enumerate(system.getForces()):
-            if force.getName() == "CMMotionRemover":
-                system.removeForce(n)
-                break
-        logger.warning("Centre of Mass Motion Remover is Disabled")
+    if not setup.config["md"]["CMMotionRemover"]:
+        cm_remover_type = "disabled"
     else:
-        logger.warning("Centre of Mass Motion Remover is Enabled")
+        cm_remover_type = setup.config["md"]["CMMotionRemover"].get("type")
+        cm_remover_freq = setup.config["md"]["CMMotionRemover"].get("reportInterval")
 
+    # Handle CMMotionRemover - iterate once
+    for n, force in enumerate(system.getForces()):
+        if force.getName() == "CMMotionRemover":
+            if cm_remover_type != "internal":
+                system.removeForce(n)
+                logger.warning("Centre of Mass Motion Remover is Disabled")
+            else:
+                force.setFrequency(int(cm_remover_freq))
+                logger.warning(
+                    f"Centre of Mass Motion is removed every {force.getFrequency()} steps"
+                )
+            break
+
+    # Set force groups
+    for n, f in enumerate(system.getForces()):
+        f.setForceGroup(n + 1)
+
+    # Log force groups on first run
     if first:
         logger.debug("------------------------------------#")
         logger.debug("NEWSYSTEM: Adding force groups ...")
         for n, f in enumerate(system.getForces()):
             logger.debug("NEWSYSTEM:   {} -> {}".format(n + 1, f.getName()))
-            f.setForceGroup(n + 1)
         logger.debug("------------------------------------#")
         # Compute system properties for basic checks
         my.checkSystem(system, modeller.topology, forcefield, pdb.positions)
-    else:
-        for n, f in enumerate(system.getForces()):
-            f.setForceGroup(n + 1)
 
     # Remove dispersion correction
     # if not setup.config["forcefield"]["useDispersionCorrection"]:

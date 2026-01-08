@@ -23,7 +23,6 @@ import openmm.unit as unit
 class forceReporter(object):
     def __init__(self, file, reportInterval):
         self._out = open(file, "w")
-        self._out2 = open("pos.dat", "w")
         self._reportInterval = reportInterval
 
     def __del__(self):
@@ -41,26 +40,39 @@ class forceReporter(object):
 
     def report(self, simulation, state):
         stime = state.getTime().value_in_unit(unit.picosecond)
-
-        forceGroup = set()
         system = simulation.context.getSystem()
-        for force in system.getForces():
-            if force.getName() != "CustomCVForce":
-                forceGroup.add(force.getForceGroup())
 
-        state = simulation.context.getState(getPositions=True, getForces=True, groups=forceGroup)
+        # forceGroup = set()
+        string = f"{stime:.3f}"
+        state = simulation.context.getState(
+            getPositions=True, getForces=True, groups=-1
+        )
         forces = state.getForces(asNumpy=True)
         forces = forces.value_in_unit(unit.kilojoule_per_mole / unit.nanometer)
-        positions = state.getPositions(asNumpy=True).value_in_unit(unit.angstrom)
 
-        self._out.write("#Simulation time = {}\n".format(stime))
-        for i in range(0, 4):
-            self._out.write("%g %g %g " % (forces[i][0], forces[i][1], forces[i][2]))
-        self._out.write("\n")
+        mean = np.mean(forces, axis=0)
+        stderr = np.std(forces, axis=0) / np.sqrt(502)
+        string += f" {mean[2]:10.3g} {stderr[2]:10.3g}"
+
+        for force in system.getForces():
+            name = force.getName()
+            forceGroup = force.getForceGroup()
+
+            state = simulation.context.getState(
+                getPositions=True, getForces=True, groups=forceGroup
+            )
+            forces = state.getForces(asNumpy=True)
+            forces = forces.value_in_unit(unit.kilojoule_per_mole / unit.nanometer)
+
+            mean = np.mean(forces, axis=0)
+            stderr = np.std(forces, axis=0) / np.sqrt(502)
+            string += f" {mean[2]:10.3g} {stderr[2]:10.3g}"
+            # print(
+            #     forceGroup,
+            #     name,
+            #     mean[2],
+            #     stderr[2],
+            # )
+        print(string)
+        self._out.write(string + "\n")
         self._out.flush()
-
-        self._out2.write("#Simulation time = {}\n".format(stime))
-        for i in range(0, 4):
-            self._out2.write("%g %g %g " % (positions[i][0], positions[i][1], positions[i][2]))
-        self._out2.write("\n")
-        self._out2.flush()

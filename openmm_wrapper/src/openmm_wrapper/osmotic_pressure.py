@@ -197,38 +197,26 @@ class OsmoticPressureReporter(object):
 
             logger.info("Axis direction: %s", self._dir.upper())
 
-        self._box = state.getPeriodicBoxVectors(asNumpy=True).value_in_unit(
-            unit.nanometer
-        )
+        self._box = state.getPeriodicBoxVectors(asNumpy=True).value_in_unit(unit.nanometer)
 
         # Initialize geometry-specific area and volume functions
         geometry = self._geometry.upper()
 
         if geometry == "SPHERE":
             self._compute_area = (
-                lambda r: 4
-                * np.pi
-                * (r**2 + 2 * r * self._factor_1 + 2 * self._factor_0)
+                lambda r: 4 * np.pi * (r**2 + 2 * r * self._factor_1 + 2 * self._factor_0)
             )
             self._compute_volume = (
                 lambda r: 4
                 * np.pi
-                * (
-                    r**3 / 3
-                    + (r**2 + self._factor_0) * self._factor_1
-                    + r * 2 * self._factor_0
-                )
+                * (r**3 / 3 + (r**2 + self._factor_0) * self._factor_1 + r * 2 * self._factor_0)
             )
-            self._update_gcmd_parameter = (
-                lambda gcmd_parameter, mu: gcmd_parameter * mu ** (1 / 3)
-            )
+            self._update_gcmd_parameter = lambda gcmd_parameter, mu: gcmd_parameter * mu ** (1 / 3)
 
         elif geometry == "HARMONIC":
             i, j = self._dirs[0], self._dirs[1]
             self._compute_area = lambda r: self._box[i][i] * self._box[j][j]
-            self._compute_volume = (
-                lambda r: self._box[i][i] * self._box[j][j] * self._factor_1
-            )
+            self._compute_volume = lambda r: self._box[i][i] * self._box[j][j] * self._factor_1
             self._update_gcmd_parameter = lambda gcmd_parameter, mu: gcmd_parameter
 
         elif geometry == "SLAB":
@@ -243,9 +231,7 @@ class OsmoticPressureReporter(object):
             i, j = self._dirs[0], self._dirs[1]
             self._compute_area = lambda r: self._box[i][i] * self._box[j][j]
             self._compute_volume = lambda r: 0
-            self._update_gcmd_parameter = (
-                lambda gcmd_parameter, mu: gcmd_parameter + (mu - 1) * 10
-            )
+            self._update_gcmd_parameter = lambda gcmd_parameter, mu: gcmd_parameter + (mu - 1) * 10
 
         elif geometry == "CYLINDER":
             k = self._dirs[2]
@@ -254,16 +240,12 @@ class OsmoticPressureReporter(object):
             self._compute_volume = lambda r: rtmp * (
                 0.5 * r**2 + r * self._factor_1 + self._factor_0
             )
-            self._update_gcmd_parameter = (
-                lambda gcmd_parameter, mu: gcmd_parameter * mu ** (1 / 2)
-            )
+            self._update_gcmd_parameter = lambda gcmd_parameter, mu: gcmd_parameter * mu ** (1 / 2)
 
     def _init_temperature_constants(self, temperature):
         """Initialize temperature-dependent constants."""
         self._T = temperature
-        self._kt = (unit.MOLAR_GAS_CONSTANT_R * self._T).in_units_of(
-            unit.kilojoules_per_mole
-        )
+        self._kt = (unit.MOLAR_GAS_CONSTANT_R * self._T).in_units_of(unit.kilojoules_per_mole)
         self._kappa = (
             self._context.getParameter(self._gcmd_parm[0])
             * unit.kilojoules_per_mole
@@ -278,9 +260,7 @@ class OsmoticPressureReporter(object):
         self._averagePressure = 0.0
         self._osmoticPressure = np.zeros(self._sampleLength)
 
-        logger.debug(
-            "Temperature: %.1f K, kBT: %.2f kJ/mol", self._T._value, self._kt._value
-        )
+        logger.debug("Temperature: %.1f K, kBT: %.2f kJ/mol", self._T._value, self._kt._value)
 
     def _setup_gcmd(self, config, context):
         """Setup constant osmotic pressure (GCMD) parameters."""
@@ -297,6 +277,7 @@ class OsmoticPressureReporter(object):
             "K": 0.01,
             "tau": 1.0,
             "sample": 100,
+            "equil": 0,
         }
         for k, v in self._gcmd.items():
             if k not in gcmd_defaults and k != "restart":
@@ -309,12 +290,9 @@ class OsmoticPressureReporter(object):
         self._gcmd_compressibility = 0.01  # Can be modified
         self._gcmd_tau = float(gcmd_defaults["tau"])
         self._gcmd_sample = int(gcmd_defaults["sample"])
-        self._gcmd_dt = (
-            context.getIntegrator().getStepSize().value_in_unit(unit.picosecond)
-        )
-        self._gmcd_constant = (
-            self._gcmd_compressibility * self._gcmd_dt / self._gcmd_tau
-        )
+        self._gcmd_equil = int(gcmd_defaults["equil"])
+        self._gcmd_dt = context.getIntegrator().getStepSize().value_in_unit(unit.picosecond)
+        self._gmcd_constant = self._gcmd_compressibility * self._gcmd_dt / self._gcmd_tau
 
         self._osmoticPressure.fill(self._gcmd_pext)
 
@@ -386,7 +364,9 @@ class OsmoticPressureReporter(object):
             f"{'Pi(gcmd) (bar)':>20s} "
             f"{'Parm (nm)':>20s} "
             f"{'Volume (nm^3)':>20s} "
-            f"{'Concentration (M)':>20s}\n"
+            f"{'Concentration (M)':>20s}"
+            f"{'mu':>20s}"
+            f"\n"
         )
 
         self._out.write(header)
@@ -411,56 +391,14 @@ class OsmoticPressureReporter(object):
         stime = state.getTime().value_in_unit(unit.picosecond)
 
         # Extract forces
-        forces = simulation.context.getState(
-            getForces=True, groups=self._forceGroup
-        ).getForces(asNumpy=True)
+        forces = simulation.context.getState(getForces=True, groups=self._forceGroup).getForces(
+            asNumpy=True
+        )
         forces = forces.value_in_unit(unit.kilojoule_per_mole / unit.nanometer)
         f = np.sum(np.sqrt(np.einsum("ij,ij->i", forces, forces)))
 
         gcmd_parameter = self._context.getParameter(self._gcmd_parm[1])
-        # box = state.getPeriodicBoxVectors(asNumpy=True).value_in_unit(unit.nanometer)
-        # i, j, k = self._dirs[0:3]
 
-        # # Calculate area and volume based on geometry
-        # if self._geometry.upper() == "SPHERE":
-        #     area = (
-        #         4
-        #         * np.pi
-        #         * (gcmd_parameter**2 + 2 * gcmd_parameter * self._factor_1 + 2 * self._factor_0)
-        #     )
-        #     volume = (
-        #         4
-        #         * np.pi
-        #         * (
-        #             gcmd_parameter**3 / 3
-        #             + (gcmd_parameter**2 + self._factor_0) * self._factor_1
-        #             + gcmd_parameter * 2 * self._factor_0
-        #         )
-        #     )
-
-        # elif self._geometry.upper() == "HARMONIC":
-        #     area = box[i][i] * box[j][j]
-        #     volume = area * self._factor_1
-
-        # elif self._geometry.upper() == "SLAB":
-        #     area = box[i][i] * box[j][j]
-        #     volume = area * 2 * (gcmd_parameter + self._factor_1)
-        #     area *= 2
-
-        # elif self._geometry.upper() == "PLANE":
-        #     area = box[i][i] * box[j][j]
-        #     volume = 0
-
-        # elif self._geometry.upper() == "CYLINDER":
-        #     rtmp = box[k][k] * 2 * np.pi
-        #     area = rtmp * (gcmd_parameter + self._factor_1)
-        #     volume = rtmp * (0.5 * gcmd_parameter**2 + gcmd_parameter * self._factor_1 + self._factor_0)
-
-        # else:
-        #     logger.error("Unknown geometry: %s", self._geometry)
-        #     return
-
-        # print(area, volume)
         area = self._compute_area(gcmd_parameter)
         volume = self._compute_volume(gcmd_parameter)
 
@@ -477,26 +415,22 @@ class OsmoticPressureReporter(object):
         if self._gcmd is None:
             n = min(self._localCounter, self._sampleLength)
             self._gcmd_press = np.mean(self._osmoticPressure[:n])
+            mu = 1.0
         else:
             # Apply Berendsen-like barostat
             self._gcmd_press = np.mean(self._osmoticPressure)
-            mu = 1.0 - self._dirs[3] * self._gmcd_constant * (
-                self._gcmd_pext - self._gcmd_press
-            )
+            mu = 1.0 - self._dirs[3] * self._gmcd_constant * (self._gcmd_pext - self._gcmd_press)
+            gcmd_parameter_new = self._update_gcmd_parameter(gcmd_parameter, mu)
 
-            gcmd_parameter = self._update_gcmd_parameter(gcmd_parameter, mu)
-            # if self._geometry.upper() == "PLANE":
-            #     gcmd_parameter = gcmd_parameter + (mu - 1) * 10
-            # elif self._geometry.upper() == "SLAB":
-            #     gcmd_parameter = gcmd_parameter * mu
-            # elif self._geometry.upper() == "CYLINDER":
-            #     gcmd_parameter = gcmd_parameter * mu ** (1 / 2)
-            # elif self._geometry.upper() == "SPHERE":
-            #     gcmd_parameter = gcmd_parameter * mu ** (1 / 3)
-
-            self._context.setParameter(self._gcmd_parm[1], gcmd_parameter)
-
-        # Write output at report interval
+            # if self._gcmd_equil > 0 and stime > self._gcmd_equil:
+            if self._localCounter > self._gcmd_equil:
+                self._context.setParameter(self._gcmd_parm[1], gcmd_parameter_new)
+                logger.debug(
+                    f"Time: {stime}, GCMD Parameter: {gcmd_parameter} - "
+                    f"Press: {opress}/{self._gcmd_press}, Mu: {mu}, "
+                    f"New Param: {gcmd_parameter_new}/{gcmd_parameter + (mu - 1) * 10}"
+                )
+            # Write output at report interval
         if simulation.currentStep % self._reportInterval != 0:
             return
 
@@ -513,7 +447,9 @@ class OsmoticPressureReporter(object):
             f"{self._gcmd_press:20.5f} "
             f"{gcmd_parameter:20.5f} "
             f"{volume:20.5f} "
-            f"{conc:20.5f}\n"
+            f"{conc:20.5f}"
+            f"{mu:20.5f}"
+            f"\n"
         )
         self._out.flush()
 
@@ -564,17 +500,12 @@ class OsmoticPressureReporter(object):
         elif "slab" in config["geometry"]:
             self._geometry = "SLAB"
             cmd = config["geometry"]["slab"]
-            my.check_required_keywords(
-                cmd, ["species", "kappa", "width", "centre", "axis"]
-            )
+            my.check_required_keywords(cmd, ["species", "kappa", "width", "centre", "axis"])
 
             val = ",".join([str(cmd["kappa"]), str(cmd["width"]), str(cmd["centre"])])
             p = cmd["axis"]
             p0 = p + "0"
-            expr = (
-                f"0.5*{self._gcmd_parm[0]}*(max(0,d-{self._gcmd_parm[1]}))^2;"
-                f"d=abs({p}-{p0})"
-            )
+            expr = f"0.5*{self._gcmd_parm[0]}*(max(0,d-{self._gcmd_parm[1]}))^2;d=abs({p}-{p0})"
             cmd = {
                 f"osmoticWall{self._resName}": {
                     "global": f"{self._gcmd_parm[0]},{self._gcmd_parm[1]}",
@@ -588,9 +519,7 @@ class OsmoticPressureReporter(object):
         elif "cylinder" in config["geometry"]:
             self._geometry = "CYLINDER"
             cmd = config["geometry"]["cylinder"]
-            my.check_required_keywords(
-                cmd, ["species", "kappa", "radius", "centre", "axis"]
-            )
+            my.check_required_keywords(cmd, ["species", "kappa", "radius", "centre", "axis"])
 
             val = ",".join([str(cmd["kappa"]), str(cmd["radius"]), str(cmd["centre"])])
 
@@ -615,9 +544,7 @@ class OsmoticPressureReporter(object):
                 }
             }
         else:
-            raise KeyError(
-                f"Unknown geometry for Osmotic Pressure calculation: {self._geometry}"
-            )
+            raise KeyError(f"Unknown geometry for Osmotic Pressure calculation: {self._geometry}")
 
         logger.info("Geometry: %s", self._geometry.lower())
 

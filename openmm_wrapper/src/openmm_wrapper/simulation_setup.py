@@ -167,13 +167,16 @@ class simulationSetup(object):
             for x in ["DeviceIndex", "Precision"]:
                 self.config["basic"][x] = "Auto"
             self.properties = {}
-        elif self.config["basic"]["Platform"] in ["CUDA", "HIP"]:
+        elif self.config["basic"]["Platform"] in ["CUDA"]:
             self.properties = {
                 x: str(self.config["basic"][x]) for x in ["DeviceIndex", "Precision"]
             }
+        elif self.config["basic"]["Platform"] in ["HIP"]:
+            self.properties = {
+                x: str(self.config["basic"][x]) for x in ["HipDeviceIndex", "Precision"]
+            }
         else:
             raise Exception("Platform not recognised")
-
         # Scree output
         self.dumpBasicInfo()
 
@@ -191,6 +194,7 @@ class simulationSetup(object):
                 "Platform": None,
                 "Precision": "mixed",
                 "DeviceIndex": 0,
+                "HipDeviceIndex": 0,
             },
             "input": {
                 "runID": self.runID,
@@ -215,10 +219,11 @@ class simulationSetup(object):
                 "mutualInducedTargetEpsilon": 1e-05,
                 "lj14Scale": 0.5,
                 "modify": None,
-                "CMMotionRemover": True,
+                # "CMMotionRemover": 1000,
             },
             "energy": False,
             "rerun": False,
+            "test_forces": False,
             "md": {
                 "minimise": False,
                 "ensemble": "NVT",
@@ -234,6 +239,11 @@ class simulationSetup(object):
                 "barostatUpdate": 25,
                 "reportInterval": 10000,
                 "restartFrom": None,
+                "CMMotionRemover": {
+                    "type": "internal",
+                    "reportInterval": 1000,
+                    "groups": None,
+                },
                 "trajectoryOutput": {
                     "file": "trajectory.{}.xtc".format(self.runID),
                     "reportInterval": 0,
@@ -257,6 +267,7 @@ class simulationSetup(object):
                     "remainingTime": True,
                     "speed": True,
                     "elapsedTime": True,
+                    "barostat": None,
                 },
                 "logOutput": {
                     "file": "output.{}.out".format(self.runID),
@@ -274,6 +285,7 @@ class simulationSetup(object):
                     "remainingTime": False,
                     "speed": True,
                     "elapsedTime": True,
+                    "barostat": None,
                 },
                 "restartOutput": {
                     "file": "restart.{}.xml".format(self.runID),
@@ -343,13 +355,21 @@ class simulationSetup(object):
     def dumpParametersMD(self):
         logger = logging.getLogger("dynamicEntropy")
         logger.critical("Molecular dynamics setup ...")
+        level = logging.getLevelName(logger.getEffectiveLevel())
         for x in self.config["md"].items():
-            if type(x[1]) == dict:
-                logger.info("  {:40s} = {}".format(x[0], x[1]["file"]))
-                for y in x[1].items():
-                    if y[0] == "file":
-                        continue
-                    logger.debug(" {:40s} = {:<20s} : {}".format("", *y))
+            if isinstance(x[1], dict):
+                if level == "DEBUG":
+                    logger.info("  {:40s}".format(x[0]))
+                    for k, v in x[1].items():
+                        logger.debug("   {:<20s} : {}".format(k, v))
+                else:
+                    if x[1].get("file", None) is not None:
+                        logger.info(
+                            "  {:40s} = {}".format(x[0] + ".file", x[1]["file"])
+                        )
+                    else:
+                        for k, v in x[1].items():
+                            logger.info("  {:40s} = {}".format(k, v))
             else:
                 logger.info("  {:40s} = {}".format(*x))
         return

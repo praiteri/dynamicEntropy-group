@@ -108,7 +108,9 @@ def free_energy_perturbation(setup, modeller, system):
 
     # Append FEP reporter
     # only the contexts for the perturbed states are required
-    simulation.reporters.append(my.FEPReporter(setup, listOfContexts[1:], cc=listOfContexts[0]))
+    simulation.reporters.append(
+        my.FEPReporter(setup, listOfContexts[1:], cc=listOfContexts[0])
+    )
 
     # Run simulation
     logger.critical("#--- Running molecular dynamics ------------#")
@@ -116,7 +118,9 @@ def free_energy_perturbation(setup, modeller, system):
 
     if setup.config["md"]["restartOutput"]["file"] is not None:
         logger.critical("#--- Writing restart file ------------------#")
-        my.dumpRestartFiles(simulation, setup.config["md"]["restartOutput"]["file"], XML=False)
+        my.dumpRestartFiles(
+            simulation, setup.config["md"]["restartOutput"]["file"], XML=False
+        )
 
     return
 
@@ -148,7 +152,9 @@ def initialise_FEP(setup, modeller, system):
     }
 
     if isinstance(setup.config["fep"]["lambda"], str):
-        setup.config["fep"]["lambda"] = [float(x) for x in setup.config["fep"]["lambda"].split(",")]
+        setup.config["fep"]["lambda"] = [
+            float(x) for x in setup.config["fep"]["lambda"].split(",")
+        ]
     lambdaValues[fepType] = setup.config["fep"]["lambda"]
 
     fepAtoms = []
@@ -165,13 +171,21 @@ def initialise_FEP(setup, modeller, system):
             for i in range(0, len(fepAtoms), 10):
                 logger.debug("FEP: {}".format(fepAtoms[i : i + 10]))
 
-    logger.info("  {:40s} = {} ".format("lambda values (coulomb)", lambdaValues["coul"]))
+    logger.info(
+        "  {:40s} = {} ".format("lambda values (coulomb)", lambdaValues["coul"])
+    )
     logger.info("  {:40s} = {} ".format("lambda values (vdw)", lambdaValues["vdw"]))
     logger.info("  {:40s} = {} ".format("lambda values (ff)", lambdaValues["ff"]))
     logger.info("  {:40s} = {} ".format("lambda values (fep)", lambdaValues["fep"]))
 
-    logger.info("  {:40s} = {} ".format("FEP output file", setup.config["fep"]["output"]))
-    logger.info("  {:40s} = {} ".format("output frequency", setup.config["fep"]["reportInterval"]))
+    logger.info(
+        "  {:40s} = {} ".format("FEP output file", setup.config["fep"]["output"])
+    )
+    logger.info(
+        "  {:40s} = {} ".format(
+            "output frequency", setup.config["fep"]["reportInterval"]
+        )
+    )
 
     return lambdaValues, fepAtoms
 

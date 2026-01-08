@@ -70,51 +70,6 @@ def initialiseMolecularDynamics(setup, modeller, system):
         setup.properties,
     )
 
-    # simulation.reporters.append(my.removeTorque(system, 1000))
-
-    # restart old simulation
-    if mdConfig["restartFrom"] is not None:
-        logger.critical("Restarting MD simulation ...")
-        logger.info("  {:40s} = {}".format("file", mdConfig["restartFrom"]))
-
-        simulation.context.setStepCount(0)
-
-        file_extension = pathlib.Path(mdConfig["restartFrom"]).suffix
-        if file_extension == ".xml":
-            simulation.loadState(mdConfig["restartFrom"])
-            simulation.context.reinitialize(preserveState=True)
-
-        elif file_extension == ".chk":
-            simulation.loadCheckpoint(mdConfig["restartFrom"])
-
-        elif file_extension == ".pdb":
-            atomic_coordinates, cell = my.read_pdb_coordinates(
-                mdConfig["restartFrom"], unit="nm"
-            )
-
-            pos = np.array([a["coord"] for a in atomic_coordinates])
-
-            hmat = app.internal.unitcell.computePeriodicBoxVectors(*cell)
-
-            simulation.context.setPositions(pos)
-            simulation.context.setPeriodicBoxVectors(*hmat)
-
-            simulation.context.setVelocitiesToTemperature(
-                mdConfig["temperature"],
-                setup.rng.integers(low=1, high=99999, size=1)[0],
-            )
-
-            # my.computeEnergyFromContext(simulation.context)
-            # quit()
-
-    else:
-        # Initialise positions and velocities
-        simulation.context.setPositions(modeller.positions)
-
-        simulation.context.setVelocitiesToTemperature(
-            mdConfig["temperature"], setup.rng.integers(low=1, high=99999, size=1)[0]
-        )
-
     if setup.config["md"]["minimise"]:
         logger.critical("Energy minimisation (MD) ...")
         # reporter = my.minimizationReporter()
@@ -150,13 +105,21 @@ def initialiseMolecularDynamics(setup, modeller, system):
                 )
             )
 
+        # Find barostat if present and add to reporter
+        for force in system.getForces():
+            if isinstance(force, mm.MonteCarloBarostat):
+                mdConfig["screenOutput"]["barostat"] = force
+                mdConfig["logOutput"]["barostat"] = force
+                break
+
         if mdConfig["screenOutput"]["file"] is not None:
             if mdConfig["screenOutput"]["file"].lower() == "stdout":
                 mdConfig["screenOutput"]["file"] = sys.stdout
             elif mdConfig["screenOutput"]["file"].lower() == "stderr":
                 mdConfig["screenOutput"]["file"] = sys.stderr
+
             simulation.reporters.append(
-                app.StateDataReporter(**mdConfig["screenOutput"])
+                my.ExtendedStateDataReporter(**mdConfig["screenOutput"])
             )
 
     # Log file
@@ -175,7 +138,9 @@ def initialiseMolecularDynamics(setup, modeller, system):
                     "log frequency", mdConfig["logOutput"]["reportInterval"]
                 )
             )
-        simulation.reporters.append(app.StateDataReporter(**mdConfig["logOutput"]))
+        simulation.reporters.append(
+            my.ExtendedStateDataReporter(**mdConfig["logOutput"])
+        )
 
     # Trajectory output
     if (
@@ -246,13 +211,58 @@ def initialiseMolecularDynamics(setup, modeller, system):
             )
         )
 
-        simulation.reporters.append(
-            my.CatalyticReactionReporter("forces.dat", simulation.context)
-        )
+    if setup.config["test_forces"]:
+        simulation.reporters.append(my.forceReporter("forces.dat", 1000))
 
-    # simulation.reporters.append(
-    #     my.forceReporter("forces.dat",1000)
-    # )
+    if setup.config["md"]["CMMotionRemover"] is not None:
+        if setup.config["md"]["CMMotionRemover"].get("type") == "custom":
+            settings = setup.config["md"]["CMMotionRemover"]
+            simulation.reporters.append(
+                my.customCOMRemover(settings, modeller.topology)
+            )
+
+    # restart old simulation
+    if mdConfig["restartFrom"] is not None:
+        logger.critical("Restarting MD simulation ...")
+        logger.info("  {:40s} = {}".format("file", mdConfig["restartFrom"]))
+
+        simulation.context.setStepCount(0)
+
+        file_extension = pathlib.Path(mdConfig["restartFrom"]).suffix
+        if file_extension == ".xml":
+            simulation.loadState(mdConfig["restartFrom"])
+            simulation.context.reinitialize(preserveState=True)
+
+        elif file_extension == ".chk":
+            simulation.loadCheckpoint(mdConfig["restartFrom"])
+
+        elif file_extension == ".pdb":
+            atomic_coordinates, cell = my.read_pdb_coordinates(
+                mdConfig["restartFrom"], unit="nm"
+            )
+
+            pos = np.array([a["coord"] for a in atomic_coordinates])
+
+            hmat = app.internal.unitcell.computePeriodicBoxVectors(*cell)
+
+            simulation.context.setPositions(pos)
+            simulation.context.setPeriodicBoxVectors(*hmat)
+
+            simulation.context.setVelocitiesToTemperature(
+                mdConfig["temperature"],
+                setup.rng.integers(low=1, high=99999, size=1)[0],
+            )
+
+            # my.computeEnergyFromContext(simulation.context)
+            # quit()
+
+    else:
+        # Initialise positions and velocities
+        simulation.context.setPositions(modeller.positions)
+
+        simulation.context.setVelocitiesToTemperature(
+            mdConfig["temperature"], setup.rng.integers(low=1, high=99999, size=1)[0]
+        )
 
     return simulation
 
@@ -277,7 +287,7 @@ def runMolecularDynamics(setup, simulation):
     if setup.config["md"]["simulationTime"] is not None:
         h, m, s = [0, 0, 0]
         if isinstance(setup.config["md"]["simulationTime"], int):
-            t = setup.config["md"]["simulationTime"]
+            t = setup.config["md"]["simulationTime"] * unit.seconds
         else:
             string = setup.config["md"]["simulationTime"]
             nfields = string.count(":")

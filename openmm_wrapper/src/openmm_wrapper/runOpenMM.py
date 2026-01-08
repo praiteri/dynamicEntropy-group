@@ -55,6 +55,9 @@ def runOpenMM():
     elif cmd["metadynamics"] is not None:
         MTD = my.initialiseMetadynamics(setup, modeller, system)
         simulation = my.initialiseMolecularDynamics(setup, modeller, system)
+        simulation.reporters.append(
+            my.HILLSReporter("HILLS", setup.config["metadynamics"]["frequency"], MTD)
+        )
         my.runMetadynamics(setup, MTD, simulation)
 
     elif cmd["fep"] is not None:

@@ -17,6 +17,8 @@ from .custom_intramolecular_forces import *
 from .custom_cosine_angle_force import *
 
 from .custom_reporter import *
+from .custom_com_remover import *
+from .extendedStateDataReporter import *
 
 from .opls_ff import *
 
@@ -51,7 +53,7 @@ from .forward_flux_sampling import *
 from .dcd_writer import *
 
 from .metadynamics import *
-from .my_metadynamics_kernel import *
+from .hills_reporter import *
 from .plumed_interface import *
 
 from .change_atoms_properties import *

@@ -36,7 +36,7 @@ def makeListIDs(IDlst, topology):
     return selection
 
 
-def positionsRestraint(name, settings, system, topology):
+def positionsRestraint(name, settings, system, topology, coordinates=None):
     """
     Apply position restraints to a system based on the given settings.
 
@@ -82,7 +82,7 @@ def positionsRestraint(name, settings, system, topology):
         if "d0" in variables or f:
             energy = energy.replace("d", "(max(0,d-d0))")
 
-    if "file" not in settings:
+    if "file" not in settings and "expr" not in settings:
         atomsList = my.getAtoms(settings, topology)
         parameters = [values] * len(atomsList)
     else:
@@ -97,10 +97,23 @@ def positionsRestraint(name, settings, system, topology):
             variables.remove("z0")
         variables += ["x0", "y0", "z0"]
 
-        try:
-            atomic_coordinates, _ = my.read_pdb_coordinates(settings["file"], unit="nm")
-        except:
-            raise Exception("Restraint position files missing - ", settings["file"])
+        if "file" in settings and settings["file"] is not None:
+            try:
+                atomic_coordinates, _ = my.read_pdb_coordinates(
+                    settings["file"], unit="nm"
+                )
+            except FileNotFoundError:
+                raise Exception("Restraint position files missing - ", settings["file"])
+            except Exception as e:
+                raise Exception("Error reading restraint position file - ", e)
+
+        elif coordinates is not None and "expr" in settings:
+            atomic_coordinates = my.get_atomic_coordinates_from_topology(
+                settings, topology, coordinates
+            )
+            logger.critical(
+                f"  {len(atomic_coordinates)} selected atoms from topology and coordinates provided in memory"
+            )
 
         for atom in atomic_coordinates:
             atomsList.append(atom["atom_number"] - 1)
@@ -108,6 +121,8 @@ def positionsRestraint(name, settings, system, topology):
         assert len(atomsList) > 0, "No atoms in the restraint file ({})".format(
             settings["file"]
         )
+
+    ##############
 
     if "fullexp" not in settings:
         if "x0" not in variables:
@@ -176,7 +191,7 @@ def positionsRestraint(name, settings, system, topology):
     system.addForce(force)
 
 
-def addRestraints(cmd, system, topology):
+def addRestraints(cmd, system, topology, coordinates=None):
     """
     Adds restraints to the system based on the given command and configuration.
 
@@ -208,7 +223,7 @@ def addRestraints(cmd, system, topology):
         logger.debug("RESTRAINTS: {}".format(name))
         logger.debug(pformat(config))
 
-        positionsRestraint(name, config, system, topology)
+        positionsRestraint(name, config, system, topology, coordinates)
     logger.debug("RESTRAINTS: ------------------------#")
 
 

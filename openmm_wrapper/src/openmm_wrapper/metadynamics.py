@@ -56,7 +56,7 @@ def initialiseMetadynamics(setup, modeller, system):
             )
             collectiveVariables.append(newCV)
 
-    MTD = my.newMetadynamicsKernel(
+    MTD = app.Metadynamics(
         system,
         collectiveVariables,
         setup.config["md"]["temperature"],
