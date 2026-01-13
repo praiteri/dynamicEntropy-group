@@ -220,6 +220,9 @@ contains
 
     allocate(xx(3,n0))
     
+    write(0,*)"Removing clashes between molecules..."
+    write(0,*)" Minimum allowed distance between atoms: ",sqrt(rmax)
+
     if (iType == 1) then
       nMol1 = 1
       nMol2 = originalNumberOfMolecules

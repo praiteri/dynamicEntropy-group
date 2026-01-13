@@ -141,7 +141,7 @@ subroutine lowercase(str,lcstr)
 ! convert string to lower case
 
 character (len=*):: str
-character (len=len_trim(str)):: lcstr
+character (len=len_trim(str)), intent(out) :: lcstr
 
 ilen=len_trim(str)
 ioffset=iachar('A')-iachar('a')

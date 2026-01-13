@@ -42,8 +42,8 @@ contains
     call message(0,"At the moment the RMSD is simply written to a file, but it would be easy to compute its average or distribution.")
     call message(0,"Currently only molecules smaller than 50 atoms can be replaced.")
     call message(0,"Examples:")
-    call message(0,"  gpta.x --i co3.pdb --top --subs +id M1 +map 1,2,3,4 1,4,3,2 +f hco3.pdb --o new.pdb")
-    call message(0,"  gpta.x --i slab.pdb --top --subs +id M1 +f co3.pdb +rmsd rmsd.out")
+    call message(0,"  gpta.x --i co3.pdb --top --replace +id M1 +map 1,2,3,4 1,4,3,2 +f hco3.pdb --o new.pdb")
+    call message(0,"  gpta.x --i slab.pdb --top --replace +id M1 +f co3.pdb +rmsd rmsd.out")
   end subroutine replaceMoleculesHelp
 
   subroutine initialiseAction(a)

@@ -60,10 +60,13 @@ contains
     spg = "P 1"
 
     ! Read the first line
+    line = ""
     call readline(uinp,line,ios)
     if (ios/=0) return
 
     main : do 
+      key = ''
+      line2 = ''
       call lowercase(line,line2)
       read(line2,*)key
 
@@ -74,9 +77,26 @@ contains
           if (ios/=0) then
             call readline(uinp,line,ios)
             if (ios/=0) call message(-1,"Error reading GULP cell 1")
+            read(line,*,iostat=ios)cell  
           end if
 
           if (ios/=0) call message(-1,"Error reading GULP cell 2")
+          cell(4) = cell(4) * pi / 180.0_real64
+          cell(5) = cell(5) * pi / 180.0_real64
+          cell(6) = cell(6) * pi / 180.0_real64
+          call cell2hmat(cell,hmat)
+
+        case ("scel")
+          read(line,*,iostat=ios)str,cell(1),cell(2),cell(6)  
+          if (ios/=0) then
+            call readline(uinp,line,ios)
+            if (ios/=0) call message(-1,"Error reading GULP cell 3")
+            read(line,*,iostat=ios)cell(1),cell(2),cell(6)  
+          end if
+          cell(3) = 100.0_real64
+          cell(4) = 90.0_real64
+          cell(4) = 90.0_real64
+
           cell(4) = cell(4) * pi / 180.0_real64
           cell(5) = cell(5) * pi / 180.0_real64
           cell(6) = cell(6) * pi / 180.0_real64
@@ -91,14 +111,14 @@ contains
           end do
 
         case ("svec") 
+          hmat = 0.0_real64
           do i=1,2
             call readline(uinp,line,ios)
             if (ios/=0) call message(-1,"Error reading GULP vectors")
-            read(line,*,iostat=ios)hmat(:,i)
+            read(line,*,iostat=ios)hmat(1:2,i)
             if (ios/=0) call message(-1,"Error reading GULP vectors")
           end do
-          hmat(1:2,3) = 0.0_real64
-          hmat(3,3) = 1000.0_real64
+          hmat(3,3) = 100.0_real64
 
         ! read the coordinates
         case ("frac" , "sfra" , "cart")
@@ -122,10 +142,11 @@ contains
             end if
 
             localLabels(numberOfAtomsGULP) = ctmp
+            if (key(1:4) == "sfra") rtmp(3) = rtmp(3) / 100.0_real64
             localPositions(:,numberOfAtomsGULP) = rtmp
             localCharges(numberOfAtomsGULP) = rqq
 
-            if (key(1:4) == 'frac') then
+            if (key(1:4) == 'frac' .or. key(1:4) == 'sfra') then
               fractionalCoordinates = .true.
             else
               fractionalCoordinates = .false.
@@ -433,7 +454,7 @@ contains
         write(uout,'("molatom ")',advance='no')
         do iatom=1,listOfMolecules(imol) % numberOfAtoms
           if (mod(iatom,6)==0) write(uout,'(" &"/,"        ")',advance='no')
-          write(uout,'(i6)',advance='no')listOfMolecules(imol) % listOfAtoms(iatom)
+          write(uout,'(1x,i0,1x)',advance='no')listOfMolecules(imol) % listOfAtoms(iatom)
         enddo
         write(uout,*)
       enddo

@@ -251,6 +251,10 @@ contains
       call message(-1,"--add too many atoms to fit in the box",iv=[sum(numberOfNewMolecules),nx*ny*nz])
     end if
 
+    nx = int( sum(numberOfNewMolecules)**(1./3.) ) + 1
+    nz = int( sum(numberOfNewMolecules)**(1./3.) ) + 1
+    ny = int( sum(numberOfNewMolecules)**(1./3.) ) + 1
+
     addedMolecules = 0
     initialAtoms = frame % natoms
     currentAtoms = frame % natoms
@@ -260,25 +264,29 @@ contains
     do iFile=1,numberOfFiles
       imol=0
       add : do while (imol<numberOfNewMolecules(iFile))
+        ! generate position inside the box
         ! centre = [grnd() , grnd() , grnd()]
 
-        ! generate position inside the box
-        ix = int(nx * grnd()) + 1.0
-        iy = int(ny * grnd()) + 1.0
-        iz = int(nz * grnd()) + 1.0
+      ! Calculate i, j, k (1-based indices)
+        ix = imol / (nx * ny) + 1
+        iy = mod(imol, nx * ny) / nx + 1
+        iz = mod(imol, nx) + 1
+
         ! map to box    
         centre = \
-          ix * hmat(1,1:3) / real(nx,real64) + \
-          iy * hmat(2,1:3) / real(ny,real64) + \
-          iz * hmat(3,1:3) / real(nz,real64)
+          ix * hmat(:,1) / real(nx,real64) + \
+          iy * hmat(:,2) / real(ny,real64) + \
+          iz * hmat(:,3) / real(nz,real64)
+
+          write(123,*)imol,ix,iy,iz
 
         ! add some noise
         ! centre = centre + origin
         ! localMolecules(iFile) % centre = matmul(hmat,centre) + origin
         localMolecules(iFile) % centre = centre + \
-          [ 0.25 * minimumDistance * ( grnd() - 0.5_real64 ) , \
-            0.25 * minimumDistance * ( grnd() - 0.5_real64 ) , \
-            0.25 * minimumDistance * ( grnd() - 0.5_real64 ) ]
+          [ 0.0001 * minimumDistance * ( grnd() - 0.5_real64 ) , \
+            0.0001 * minimumDistance * ( grnd() - 0.5_real64 ) , \
+            0.0001 * minimumDistance * ( grnd() - 0.5_real64 ) ]
         
         ! random rotation around COM
         theta  = grnd() * pi

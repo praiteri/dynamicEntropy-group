@@ -32,6 +32,13 @@ subroutine selectAtoms(nsel,cmd,a)
 
   selectionString = ''
 
+  ! Replace all occurrences
+  do i = 1, len_trim(cmd)
+      if (cmd(i:i) == "%") then
+          cmd(i:i) = "+"
+      end if
+  end do
+
   if (.not. allocated(a % isSelected)) then
     allocate(a % isSelected(frame % natoms , nsel), source=.false.)
   else

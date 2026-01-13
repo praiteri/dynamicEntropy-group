@@ -35,6 +35,11 @@ contains
     character(len=STRLEN), dimension(MAXWORDS) :: words  
     character(len=STRLEN) :: str
 
+    integer :: ilen, idx
+    character(len=10) :: test_string
+    character(len=10), dimension(12) :: valid_formats
+    logical :: found
+
     logical, pointer :: internalOutput
 
 #ifdef GPTA_XDR
@@ -70,6 +75,35 @@ contains
       end do
 
       if (outputFile % fname(1:1) == "+") call message(-1,"--o : output filename cannot start with '+'",str=outputFile % fname)
+
+      ! Initialize the list of valid formats
+      valid_formats = [character(len=10) :: "xyz", "xyze", "pdb2", "pdb", "pdbx", &
+                                            "gin", "gin2", "dcd", "psf", "lmp", "lmptrj", "xtc"]
+
+      ! Check if format is in the list
+      found = .false.
+
+      ! get the file type either from the command or the externsion
+      test_string = "NULL"
+      if (len_trim(a % name) > 3) then
+        test_string = a % name(4:3+fp)
+      else
+        ilen = len_trim(outputFile % fname)
+        idx = index(outputFile % fname,".",back=.true.)
+        if (ilen-idx>0) then
+          test_string = outputFile % fname(idx+1:ilen)
+        end if
+      end if
+
+      do i = 1, size(valid_formats)
+          if (trim(adjustl(test_string)) == trim(adjustl(valid_formats(i)))) then
+              found = .true.
+              exit
+          end if
+      end do
+      
+      if (.not. found) &
+        call message(-1,"--o : unknown file format "//trim(test_string)//" for file "//trim(outputFile % fname))
 
       call assignFlagValue(actionCommand,"+append ",lappend,.false.)
       if (lappend) then

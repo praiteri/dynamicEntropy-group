@@ -51,19 +51,19 @@ subroutine testAction(a)
       ! dump info about the action on the screen
       call dumpScreenInfo()
 
-      ! select two groups of atoms
-      call selectAtoms(2,actionCommand,a)
+      ! ! select two groups of atoms
+      ! call selectAtoms(2,actionCommand,a)
 
-      ! update selection if "reactive" trajectory
-      ! i.e. if the atom may change name 
-      if (resetFrameLabels) then
-        a % updateAtomsSelection = .false.
-      else
-        a % updateAtomsSelection = .true.
-      end if
+      ! ! update selection if "reactive" trajectory
+      ! ! i.e. if the atom may change name 
+      ! if (resetFrameLabels) then
+      !   a % updateAtomsSelection = .false.
+      ! else
+      !   a % updateAtomsSelection = .true.
+      ! end if
 
-      ! create a list of the atoms' indices for each group
-      call createSelectionList(a,2)
+      ! ! create a list of the atoms' indices for each group
+      ! call createSelectionList(a,2)
 
       ! Throw a warning for unused flags
       call checkUsedFlags(actionCommand)
@@ -72,12 +72,12 @@ subroutine testAction(a)
     else
       
       ! Repeat selection for reactive trajectories
-      if (a % updateAtomsSelection) then
-        ! select two groups of atoms
-        call selectAtoms(2,actionCommand,a)
-        ! create a list of the atoms' indices for each group
-        call createSelectionList(a,2)
-      end if 
+      ! if (a % updateAtomsSelection) then
+      !   ! select two groups of atoms
+      !   call selectAtoms(2,actionCommand,a)
+      !   ! create a list of the atoms' indices for each group
+      !   call createSelectionList(a,2)
+      ! end if 
         
     end if
 
@@ -162,48 +162,90 @@ end subroutine testAction
     integer :: idx, jdx
     integer :: iatm, jatm
     integer :: nsel1, nsel2, ntmp
-    real(8) :: dij(3), dist2, rcut2
+    real(8) :: dij(3), dist2, rcut2, rtmp, maxdist
+    real(8), save :: hmat0(3,3), deltah(3,3)
+    real(8), save, dimension(:,:), allocatable :: p0, dp
 
     real(8), allocatable, dimension(:) :: allDistances
 
-    rcut2 = cutoffRadius**2
+    ! rcut2 = cutoffRadius**2
 
-    nsel1 = count(a % isSelected(:,1))
-    nsel2 = count(a % isSelected(:,2))
+    ! nsel1 = count(a % isSelected(:,1))
+    ! nsel2 = count(a % isSelected(:,2))
 
-    ! this array is probably too large and it makes the calculation inefficient
-    if (maxNeigh == 0) then
-      maxNeigh = 100*(nsel1+nsel2)
-    else 
-      maxNeigh = int(maxNeigh * 1.2)
+    ! ! this array is probably too large and it makes the calculation inefficient
+    ! if (maxNeigh == 0) then
+    !   maxNeigh = 100*(nsel1+nsel2)
+    ! else 
+    !   maxNeigh = int(maxNeigh * 1.2)
+    ! end if
+    ! allocate(allDistances(maxNeigh))
+
+    ! ntmp = 0
+    ! ! loop over over the first group of atoms
+    ! do idx=1,nsel1
+    !   ! loop over over the second group of atoms
+    !   iatm = a % idxSelection(idx,1)
+    !   do jdx=1,nsel2
+    !     jatm = a % idxSelection(jdx,2)
+
+    !     if (iatm == jatm) cycle
+
+    !     ! calculation of the distance with PBC
+    !     dij = frame % pos(:,iatm) - frame % pos(:,jatm)
+    !     dist2 = computeDistanceSquaredPBC(dij)
+
+    !     ! store the distance if shorter thant the cutoff radius
+    !     if (dist2 >= rcut2) cycle
+    !     ntmp = ntmp + 1
+    !     allDistances(ntmp) = sqrt(dist2)
+
+    !   end do
+    ! end do
+    ! maxNeigh = ntmp
+
+    ! ! add all distances to the calculation of the distribution
+    ! call workData % compute(ID, numberOfValues=maxNeigh, xValues=allDistances)
+
+    if (tallyExecutions == 1) then
+      hmat0 = frame % hmat
+      deltah = 0.d0
+      allocate(p0(3,frame % natoms))
+      p0 = frame % pos
+      allocate(dp(3,frame % natoms))
+      return
+    end if  
+
+    ! write(0,*)tallyExecutions
+    ! write(0,*)frame%hmat(1,3) , frame%hmat(1,3) - hmat0(1,3)
+    if ( abs(frame%hmat(1,3) - hmat0(1,3)) .gt. 0.1d0 ) then
+      deltah(:,3) = deltah(:,3) + (frame%hmat(:,1))
     end if
-    allocate(allDistances(maxNeigh))
+    if ( abs(frame%hmat(2,3) - hmat0(2,3)) .gt. 0.1d0 ) then
+      deltah(:,3) = deltah(:,3) + (frame%hmat(:,2))
+    end if
+    if ( abs(frame%hmat(1,2) - hmat0(1,2)) .gt. 0.1d0 ) then
+      deltah(:,2) = deltah(:,2) + (frame%hmat(:,1))
+    end if
+    
+    hmat0 = frame % hmat
 
+    frame % hmat = frame % hmat + deltah
+
+    ! write(0,*)frame%hmat(1,3) , deltah
+    dp = frame % pos - p0
     ntmp = 0
-    ! loop over over the first group of atoms
-    do idx=1,nsel1
-      ! loop over over the second group of atoms
-      iatm = a % idxSelection(idx,1)
-      do jdx=1,nsel2
-        jatm = a % idxSelection(jdx,2)
-
-        if (iatm == jatm) cycle
-
-        ! calculation of the distance with PBC
-        dij = frame % pos(:,iatm) - frame % pos(:,jatm)
-        dist2 = computeDistanceSquaredPBC(dij)
-
-        ! store the distance if shorter thant the cutoff radius
-        if (dist2 >= rcut2) cycle
+    maxdist = 0.0
+    do iatm=1,frame % natoms
+      rtmp = sqrt(sum(dp(:,iatm)**2))
+      if (rtmp > maxdist) maxdist = rtmp
+      if (rtmp > 0.01) then
         ntmp = ntmp + 1
-        allDistances(ntmp) = sqrt(dist2)
-
-      end do
+        write(123,*) iatm,rtmp
+      end if
     end do
-    maxNeigh = ntmp
-
-    ! add all distances to the calculation of the distribution
-    call workData % compute(ID, numberOfValues=maxNeigh, xValues=allDistances)
+    write(123,*)tallyExecutions, ntmp, maxdist
+    p0 = frame % pos
 
   end subroutine computeAction
 

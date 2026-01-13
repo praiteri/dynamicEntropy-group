@@ -61,7 +61,6 @@ contains
           call message(-1,"--set | mixed selection not available")
       endif
 
-      call checkUsedFlags(actionCommand)
       return
     end if
 
@@ -79,7 +78,7 @@ contains
         call selectAtoms(1,actionCommand,a)
         ! call createInvertedSelectionList(a,1)
 
-        call checkUsedFlags(actionCommand)
+        ! call checkUsedFlags(actionCommand)
         firstAction = .false.
 
       ! Repeat selection for reactive trajectories

@@ -651,17 +651,24 @@ contains
     use moduleSystem 
     use moduleDistances
     use moduleMessages
+    use moduleStrings
     implicit none
     type(actionTypeDef), target :: a
 
     integer :: iatm
     real(real64) :: dij(3), dist
 
+    logical, pointer :: lcell
+    logical :: flipped
+    real(real64), dimension(3,3), save :: hmat_old 
+    real(real64) :: threshold = 1.0_real64
+
+    lcell => a % logicalVariables(1)
     ! Associate variables
-    
     if (a % actionInitialisation) then
       a % actionInitialisation = .false.
       a % requiresNeighboursList = .false.
+      call assignFlagValue(a % actionDetails,"+cell",lcell,.false.)
       return
     end if
     
@@ -669,20 +676,61 @@ contains
 
       if (a % firstAction) then
         call message(1,"Unwrapping trajectory")
-        allocate(a % localPositions(3,frame % natoms), source=frame % pos)
         call checkUsedFlags(a % actionDetails)
+        allocate(a % localPositions(3,frame % natoms), source=frame % pos)
+        hmat_old = frame % hmat
         a % firstAction = .false.
         return
       endif
-
+      
       do iatm=1,frame % natoms
         dij = frame % pos(:,iatm) - a % localPositions(:,iatm)
         dist = computeDistanceSquaredPBC(dij)
         frame % pos(:,iatm) = a % localPositions(:,iatm) + dij
       end do
       a % localPositions = frame % pos
-
       if (numberOfMolecules > 0) call reassembleAllMolecules()
+
+      ! Fix the LAMMPS cell flipping 
+      if (.not. lcell) return
+      flipped = .false.
+      if (frame % hmat(1,2) - hmat_old(1,2) > threshold) then
+        frame % hmat(:,2) = frame % hmat(:,2) - frame % hmat(:,1)
+        flipped = .true.
+      end if
+
+      if (frame % hmat(1,2) - hmat_old(1,2) < -threshold) then
+        frame % hmat(:,2) = frame % hmat(:,2) + frame % hmat(:,1)
+        flipped = .true.
+      end if
+
+      if (frame % hmat(1,3) - hmat_old(1,3) > threshold) then
+        frame % hmat(:,3) = frame % hmat(:,3) - frame % hmat(:,1)
+        flipped = .true.
+      end if
+
+      if (frame % hmat(1,3) - hmat_old(1,3) < -threshold) then
+        frame % hmat(:,3) = frame % hmat(:,3) + frame % hmat(:,1)
+        flipped = .true.
+      end if
+
+      if (frame % hmat(2,3) - hmat_old(2,3) > threshold) then
+        frame % hmat(:,3) = frame % hmat(:,3) - frame % hmat(:,2)
+        flipped = .true.
+      end if
+
+      if (frame % hmat(2,3) - hmat_old(2,3) < -threshold) then
+        frame % hmat(:,3) = frame % hmat(:,3) + frame % hmat(:,2)
+        flipped = .true.
+      end if
+
+      if (flipped) then
+        call hmat2cell( frame % hmat , frame % cell, "DEG")
+        call getInverseCellMatrix( frame % hmat, frame % hinv, frame % volume)
+        call cartesianToFractional( frame % natoms, frame % pos, frame % frac)
+      end if
+      hmat_old = frame % hmat
+
     end if
 
     if (endOfCoordinatesFiles) return

@@ -148,11 +148,12 @@ contains
   ! and deleting comments beginning with "#"
   implicit none
   integer, intent(in) :: nunitr
-  character(len=*), intent(inout) :: line
+  character(len=*), intent(out) :: line
   integer, intent(inout) :: ios
   
   integer :: ipos, jpos
 
+  line = ''
   do
     read(nunitr,'(a)', iostat=ios) line      ! read input line
     if(ios /= 0) return

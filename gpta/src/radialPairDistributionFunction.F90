@@ -177,7 +177,6 @@ contains
     averageVolume = averageVolume + frame % volume
 
     allocate(local_dist(numberOfBins) , source=0.0_real64)
-    write(0,*)numberOfBins
     if (numberOfMolecules > 0) then
 !$OMP PARALLEL DEFAULT(SHARED) &
 !$OMP PRIVATE (iatm,ineigh,jatm,idx)

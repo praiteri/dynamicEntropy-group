@@ -90,8 +90,6 @@ contains
 
     call assignFlagValue(actionCommand,"+atom",newElementsLabels)
     
-    ! call assignFlagValue(actionCommand,"+rclash",maximumOverlap)
-
     call assignFlagValue(actionCommand,"+n",numberOfNewElements)
     if (.not. allocated(numberOfNewElements) ) \
       call message(-1,"--add | numner of new species must be specified using the +n flag")
@@ -164,6 +162,7 @@ contains
     integer :: initialMolecules, currentMolecules
     integer :: nx, ny, nz
     integer :: ix, iy, iz
+    real(real64), dimension(3) :: rx, ry, rz
 
     character(len=2) :: str
 
@@ -180,6 +179,10 @@ contains
 
     allocate(localSize(sum(numberOfNewElements)))
 
+    nx = int( sum(numberOfNewElements)**(1./3.) ) + 1
+    nz = int( sum(numberOfNewElements)**(1./3.) ) + 1
+    ny = int( sum(numberOfNewElements)**(1./3.) ) + 1
+
     addedMolecules = 0
     initialAtoms = frame % natoms
     currentAtoms = frame % natoms
@@ -190,20 +193,30 @@ contains
       imol=0
       add : do while (imol<numberOfNewElements(iElement))
         ! generate position inside the box
-        ix = int(nx * grnd()) + 1.0
-        iy = int(ny * grnd()) + 1.0
-        iz = int(nz * grnd()) + 1.0
-        ! map to box    
-        centre = \
-          ix * hmat(1,1:3) / real(nx,real64) + \
-          iy * hmat(2,1:3) / real(ny,real64) + \
-          iz * hmat(3,1:3) / real(nz,real64)
+        rx = grnd() * hmat(:,1)
+        ry = grnd() * hmat(:,2)
+        rz = grnd() * hmat(:,3)
+        centre = rx + ry + rz
 
-        ! add some noise
-        centre = centre + \
-          [ 0.25 * minimumDistance * ( grnd() - 0.5_real64 ) , \
-            0.25 * minimumDistance * ( grnd() - 0.5_real64 ) , \
-            0.25 * minimumDistance * ( grnd() - 0.5_real64 ) ]
+        ! ! Calculate i, j, k (1-based indices)
+        ! ix = imol / (nx * ny) + 1
+        ! iy = mod(imol, nx * ny) / nx + 1
+        ! iz = mod(imol, nx) + 1
+
+        ! ! map to box    
+        ! centre = \
+        !   ix * hmat(1,1:3) / real(nx,real64) + \
+        !   iy * hmat(2,1:3) / real(ny,real64) + \
+        !   iz * hmat(3,1:3) / real(nz,real64)
+
+        ! ! add some noise
+        ! centre = centre + \
+        !   [ 0.25 * minimumDistance * ( grnd() - 0.5_real64 ) , \
+        !     0.25 * minimumDistance * ( grnd() - 0.5_real64 ) , \
+        !     0.25 * minimumDistance * ( grnd() - 0.5_real64 ) ]
+
+        if (check_previous_positions(currentAtoms, frame % pos(1:3,1:currentAtoms), centre, minimumDistance)) cycle add
+
         centre = centre + origin
       
         imol = imol + 1
@@ -313,5 +326,33 @@ contains
     numberOfMolecules = currentMolecules
 
   end subroutine createRandomPositionsSphere
+
+  function check_previous_positions(nAtoms, positions, newPosition, minDistance) result(hasClash)
+    use moduleDistances
+    implicit none
+    integer, intent(in) :: nAtoms
+    real(real64), dimension(3,nAtoms), intent(in) :: positions
+    real(real64), dimension(3), intent(in) :: newPosition
+    real(real64), intent(in) :: minDistance
+    logical :: hasClash
+
+    integer :: i
+    real(real64) :: dij(3)
+    real(real64) :: distSquared, minDistSquared
+
+    hasClash = .false.
+    minDistSquared = minDistance * minDistance
+
+    do i=1,nAtoms
+      dij = positions(1:3,i) - newPosition
+      distSquared = computeDistanceSquaredPBC(dij)
+      ! write(0,*)"Distance squared to atom ", i, " is ", distSquared
+      if (distSquared < minDistSquared) then
+        hasClash = .true.
+        return
+      end if
+    end do
+
+  end function check_previous_positions
 
 end module addElementsModule

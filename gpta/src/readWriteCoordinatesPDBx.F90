@@ -40,7 +40,7 @@ subroutine writeCoordinatesPDBx(uout)
 
     nb = nb + 1
     imol = atomToMoleculeIndex (iatm)
-    write(uout,'("bond",i0," covale",2(1x,"A",1x,a,1x,i5,1x,a))') nb, &
+    write(uout,'("bond",i0," covale",2(1x,"A",1x,a,1x,i0,1x,a))') nb, &
       listOfMolecules(imol) % resname, imol, frame % lab(iatm), &
       listOfMolecules(imol) % resname, imol, frame % lab(jatm) 
   end do
@@ -62,7 +62,7 @@ subroutine writeCoordinatesPDBx(uout)
     imol = atomToMoleculeIndex (iatm)
     l = frame%lab(iatm)
     id=getAtomicNumber(frame % lab(iatm))
-    write(uout,'("ATOM",1x,i6,3(1x,a3)," A ",1x,i8,3(1x,f11.7))') &
+    write(uout,'("ATOM",1x,i6,3(1x,a3)," A ",1x,i0,3(1x,f11.7))') &
       iatm, trim(atom(id) % lab), l, listOfMolecules(imol) % resname, imol, frame%pos(:,iatm)
   end do
 
