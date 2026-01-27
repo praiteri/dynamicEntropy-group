@@ -1,0 +1,253 @@
+<!--
+#  Library for new potentials post-standard state correction
+#
+#  This library contains:
+#      The force field for Alkaline-Earth carbonates from:
+#      B. Armstrong, A. Silvestri, R. Demichelis, P. Raiteri and J.D. Gale
+#      Phil. Trans. Roy. Soc. A, 381, 20220250 (2023)
+#      https://doi.org/10.1098/rsta.2022.0250
+#
+#  The flexible SPC water model of Wu et al:
+#      Y. Wu, H.L. Tepper and G.A. Voth, J. Chem. Phys., 124, 024503 (2006)
+#      https://doi.org/10.1063/1.2136877
+#
+#  The bicarbonate forcefield adapted from:
+#      Demichelis, R., Raiteri, P., Gale, J. D., Quigley, D. & Gebauer, D. 
+#      Nature communications 2, 590 (2011)
+#      https://doi.org/10.1038/ncomms1604
+-->
+<ForceField>
+    <AtomTypes>
+        <Type name="spcfw-O" type="spcfw-O" class="spcfw-O" mass="16.000" element="O" />
+        <Type name="spcfw-H" type="spcfw-H" class="spcfw-H" mass="1.0100" element="H" />
+
+        <Type name="Mg" type="Mg" class="Mg" mass="24.305" element="Mg" />
+        <Type name="Ca" type="Ca" class="Ca" mass="40.078" element="Ca" />
+        <Type name="Sr" type="Sr" class="Sr" mass="87.620" element="Sr" />
+        <Type name="Ba" type="Ba" class="Ba" mass="137.33" element="Ba" />
+        
+        <Type name="carb-C" type="carb-C" class="carb-C" mass="12.010" element="C" />
+        <Type name="carb-O" type="carb-O" class="carb-O" mass="16.000" element="O" />
+        
+        <Type name="bcarb-C"  type="bcarb-C"  class="bcarb-C"  mass="12.010" element="C" />
+        <Type name="bcarb-O"  type="bcarb-O"  class="bcarb-O"  mass="16.000" element="O" />
+        <Type name="bcarb-Oh" type="bcarb-Oh" class="bcarb-Oh" mass="16.000" element="O" />
+        <Type name="bcarb-H"  type="bcarb-H"  class="bcarb-H"  mass="1.0100" element="H" />
+
+        <Type name="nh4-N" type="nh4-N" class="nh4-N" mass="14.01" element="N"/>
+        <Type name="nh4-H" type="nh4-H" class="nh4-H" mass=" 1.01" element="H"/>
+
+        <Type name="Na" type="Na" class="Na" mass="22.99" element="Na" />
+        <Type name="Cl" type="Cl" class="Cl" mass="35.00" element="Cl" />
+    </AtomTypes>
+    
+    <Residues>
+        <Residue name="HOH">
+            <Atom name="O1" type="spcfw-O" charge="-0.820000" />
+            <Atom name="H2" type="spcfw-H" charge=" 0.410000" />
+            <Atom name="H3" type="spcfw-H" charge=" 0.410000" />
+            <Bond atomName1="O1" atomName2="H2" />
+            <Bond atomName1="O1" atomName2="H3" />
+        </Residue>
+
+        <Residue name="Mg">
+            <Atom name="Mg" type="Mg" charge="2.000000" />
+        </Residue>
+        <Residue name="Ca">
+            <Atom name="Ca" type="Ca" charge="0.000000" />
+        </Residue>
+        <Residue name="Sr">
+            <Atom name="Sr" type="Sr" charge="2.000000" />
+        </Residue>
+        <Residue name="Ba">
+            <Atom name="Ba" type="Ba" charge="2.000000" />
+        </Residue>
+
+        <Residue name="CO3">
+            <Atom name="C1" type="carb-C" charge=" 1.423285" />
+            <Atom name="O2" type="carb-O" charge="-1.141095" />
+            <Atom name="O3" type="carb-O" charge="-1.141095" />
+            <Atom name="O4" type="carb-O" charge="-1.141095" />
+            <Bond atomName1="C1" atomName2="O2" />
+            <Bond atomName1="C1" atomName2="O3" />
+            <Bond atomName1="C1" atomName2="O4" />
+        </Residue>
+
+        <Residue name="HCO3">
+            <Atom name="C1" type="bcarb-C"  charge="0.926858" />
+            <Atom name="O2" type="bcarb-O"  charge="-0.825861" />
+            <Atom name="O3" type="bcarb-O"  charge="-0.825861" />
+            <Atom name="O4" type="bcarb-Oh" charge="-0.601173" />
+            <Atom name="H5" type="bcarb-H"  charge="0.326037" />
+            <Bond atomName1="C1" atomName2="O2" />
+            <Bond atomName1="C1" atomName2="O3" />
+            <Bond atomName1="C1" atomName2="O4" />
+            <Bond atomName1="O4" atomName2="H5" />
+        </Residue>
+
+        <Residue name="NH4">
+            <Atom name="N0" type="nh4-N" charge="-0.55988"/>
+            <Atom name="H1" type="nh4-H" charge=" 0.38997"/>
+            <Atom name="H2" type="nh4-H" charge=" 0.38997"/>
+            <Atom name="H3" type="nh4-H" charge=" 0.38997"/>
+            <Atom name="H4" type="nh4-H" charge=" 0.38997"/>
+            <Bond atomName1="N0" atomName2="H1" />
+            <Bond atomName1="N0" atomName2="H2" />
+            <Bond atomName1="N0" atomName2="H3" />
+            <Bond atomName1="N0" atomName2="H4" />
+        </Residue>
+
+        <Residue name="Na">
+            <Atom name="Na" type="Na" charge="1.00000" />
+        </Residue>
+        <Residue name="Cl">
+            <Atom name="Cl" type="Cl" charge="-1.00000" />
+        </Residue>
+
+    </Residues>
+    
+    <HarmonicBondForce>
+        <Bond class1="spcfw-O"  class2="spcfw-H"  length="0.101200" k="443155.605000" />
+        
+        <Bond class1="carb-C"   class2="carb-O"   length="0.130420" k="394134.471050" />
+        
+        <Bond class1="bcarb-C"  class2="bcarb-Oh" length="0.14" k="241212.50000" />
+        <Bond class1="bcarb-C"  class2="bcarb-O"  length="0.127" k="473741.35000" />
+        <Bond class1="bcarb-Oh" class2="bcarb-H"  length="0.1" k="488214.10000" />
+
+        <Bond class1="nh4-N" class2="nh4-H" length="0.101"    k="181704.4114" />
+    </HarmonicBondForce>
+    
+    <HarmonicAngleForce>
+        <Angle class1="spcfw-H" class2="spcfw-O" class3="spcfw-H" angle="1.97641" k="317.567" />
+
+        <Angle class1="carb-O"  class2="carb-C"  class3="carb-O"  angle="2.0944" k="1276.88" />
+        <!--<Angle class1="carb-O"  class2="carb-C"  class3="carb-O"  angle="2.0944" k="1216.965305" />-->
+
+        <Angle class1="bcarb-O" class2="bcarb-C"  class3="bcarb-Oh" angle="2.02" k="450" />
+        <Angle class1="bcarb-O" class2="bcarb-C"  class3="bcarb-O"  angle="2.2" k="1216.97" />
+        <Angle class1="bcarb-C" class2="bcarb-Oh" class3="bcarb-H"  angle="2.02" k="436.112" />
+
+        <Angle class1="nh4-H" class2="nh4-N" class3="nh4-H" angle="1.9111355309" k="146.5317695"/>
+    </HarmonicAngleForce>
+
+    <PeriodicTorsionForce>
+        <Proper class1="bcarb-O" class2="bcarb-C" class3="bcarb-Oh" class4="bcarb-H" 
+            periodicity1="2" phase1="3.14159265359" k1="10.885920125"/>
+    </PeriodicTorsionForce>
+
+    <NonbondedForce coulomb14scale="0.8333333333" lj14scale="0.5">
+        <UseAttributeFromResidue name="charge" />
+        <!--
+        <Atom type="spcfw-O" sigma="0.3165492" epsilon="0.6503089" />
+        -->
+        <Atom type="spcfw-O" sigma="0.3165492" epsilon="0.0" />
+        <Atom type="spcfw-H" sigma="1.0" epsilon="0.0" />
+
+        <Atom type="Na" sigma="1.0" epsilon="0.0" />
+        <Atom type="Cl" sigma="1.0" epsilon="0.0" />
+        <Atom type="Mg" sigma="1.0" epsilon="0.0" />
+        <Atom type="Ca" sigma="1.0" epsilon="0.0" />
+        <Atom type="Sr" sigma="1.0" epsilon="0.0" />
+        <Atom type="Ba" sigma="1.0" epsilon="0.0" />
+        <Atom type="carb-C" sigma="1.0" epsilon="0.0" />
+        <Atom type="carb-O" sigma="1.0" epsilon="0.0" />
+        <Atom type="bcarb-C" sigma="1.0" epsilon="0.0" />
+        <Atom type="bcarb-O" sigma="1.0" epsilon="0.0" />
+        <Atom type="bcarb-Oh" sigma="1.0" epsilon="0.0" />
+        <Atom type="bcarb-H" sigma="1.0" epsilon="0.0" />
+        <Atom type="nh4-N" sigma="1.0" epsilon="0.0" />
+        <Atom type="nh4-H" sigma="1.0" epsilon="0.0" />
+    </NonbondedForce>
+
+    <Script>
+# Global cutoff
+#@#set forcefield nonbondedCutoff 0.9
+#@#set forcefield customSwitchDistance 0.8
+#@#set forcefield lj14Scale 0.5
+
+# Conversion factors eV -> kJ/mol and A -> nm
+ev2kj = 96.485
+a2nm = 0.1
+cc6 = ev2kj*a2nm**6
+cc12 = ev2kj*a2nm**12 
+ck2 = ev2kj/a2nm**2 
+ck4 = ev2kj/a2nm**4
+
+# List of available Custom forcefields
+#   lj: 4*e*[(s/d)^12 - (s/d)^6] :: e, s
+# buck: A*exp(-d/rho) - C/d^6    :: A, rho, C
+#   AB: A/d^12 - B/d^6           :: A, B
+
+# Force field parameters must be in the same order as defined in customForceFields
+customForceFieldParameters = [
+
+{"ff":"lj"   , "type1":"spcfw-O"  , "type2":"spcfw-O"  ,  "params":{"e":0.6503089, "s":0.3165492 },},
+
+{"ff":"lj"   , "type1":"Na"       , "type2":"spcfw-O"  , "params":{"e":ev2kj*0.000120, "s":a2nm*3.738298 },},
+{"ff":"lj"   , "type1":"Cl"       , "type2":"spcfw-O"  , "params":{"e":ev2kj*0.022636, "s":a2nm*3.51 },},
+
+{"ff":"lj"   , "type1":"Mg"       , "type2":"spcfw-O"  , "params":{"e":ev2kj*0.001137, "s":a2nm*2.72 },},                      
+{"ff":"lj"   , "type1":"Ca"       , "type2":"spcfw-O"  , "params":{"e":ev2kj*0.000950, "s":a2nm*3.25 },},                      
+{"ff":"lj"   , "type1":"Sr"       , "type2":"spcfw-O"  , "params":{"e":ev2kj*0.000776, "s":a2nm*3.52 },},                      
+{"ff":"lj"   , "type1":"Ba"       , "type2":"spcfw-O"  , "params":{"e":ev2kj*0.000657, "s":a2nm*3.82 },},                      
+
+{"ff":"buck" , "type1":"carb-O"   , "type2":"spcfw-O"  , "params":{"A":ev2kj*12534.455133, "rho":a2nm*0.202, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"carb-C"   , "type2":"spcfw-O"  , "params":{"A":ev2kj*12534.455133, "rho":a2nm*0.28, "C":cc6*0.0 },},  
+{"ff":"buck" , "type1":"carb-O"   , "type2":"spcfw-H"  , "params":{"A":ev2kj*340.0000, "rho":a2nm*0.217, "C":cc6*0.0 },},     
+
+{"ff":"buck" , "type1":"bcarb-O"  , "type2":"spcfw-O"  , "params":{"A":ev2kj*13500.0, "rho":a2nm*0.235000, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"bcarb-Oh" , "type2":"spcfw-O"  , "params":{"A":ev2kj*8200.0, "rho":a2nm*0.215000, "C":cc6*0.0 },},
+{"ff":"AB"   , "type1":"bcarb-H"  , "type2":"spcfw-O"  , "params":{"A":cc12*5.0, "B":cc6*0.000000 },},
+{"ff":"AB"   , "type1":"bcarb-O"  , "type2":"spcfw-H"  , "params":{"A":cc12*15.0, "B":cc6*0.000000 },},
+{"ff":"AB"   , "type1":"bcarb-Oh" , "type2":"spcfw-H"  , "params":{"A":cc12*80.0, "B":cc6*0.000000 },},
+
+{"ff":"buck" , "type1":"Na"       , "type2":"carb-O"   , "params":{"A":ev2kj*689.21763, "rho":a2nm*0.315407, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Mg"       , "type2":"carb-O"   , "params":{"A":ev2kj*3336.5869, "rho":a2nm*0.244667, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Ca"       , "type2":"carb-O"   , "params":{"A":ev2kj*9063.238062, "rho":a2nm*0.2442913831, "C":cc6*0.000000000 },},
+{"ff":"buck" , "type1":"Sr"       , "type2":"carb-O"   , "params":{"A":ev2kj*3273.9620, "rho":a2nm*0.283096, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Ba"       , "type2":"carb-O"   , "params":{"A":ev2kj*15472.601, "rho":a2nm*0.255163, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"carb-O"   , "type2":"carb-O"   , "params":{"A":ev2kj*83431.58366, "rho":a2nm*0.1996268206, "C":cc6*28.00000000 },},
+{"ff":"buck" , "type1":"carb-C"   , "type2":"carb-O"   , "params":{"A":ev2kj*0.000000000, "rho":a2nm*0.2500000000, "C":cc6*5.430839117 },},
+
+{"ff":"buck" , "type1":"Na"       , "type2":"bcarb-O"  , "params":{"A":ev2kj*546.72935, "rho":a2nm*0.315407, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Na"       , "type2":"bcarb-Oh" , "params":{"A":ev2kj*398.05733, "rho":a2nm*0.315407, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Mg"       , "type2":"bcarb-O"  , "params":{"A":ev2kj*3129.3082, "rho":a2nm*0.238160, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Mg"       , "type2":"bcarb-Oh" , "params":{"A":ev2kj*2277.9325, "rho":a2nm*0.238160, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Ca"       , "type2":"bcarb-O"  , "params":{"A":ev2kj*1850.0000, "rho":a2nm*0.271511, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Ca"       , "type2":"bcarb-Oh" , "params":{"A":ev2kj*1103.0000, "rho":a2nm*0.271511, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Sr"       , "type2":"bcarb-O"  , "params":{"A":ev2kj*11304.1955, "rho":a2nm*0.244116, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Sr"       , "type2":"bcarb-Oh" , "params":{"A":ev2kj*8228.7178, "rho":a2nm*0.244116, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Ba"       , "type2":"bcarb-O"  , "params":{"A":ev2kj*10691.7037, "rho":a2nm*0.258299, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"Ba"       , "type2":"bcarb-Oh" , "params":{"A":ev2kj*7782.8637, "rho":a2nm*0.258299, "C":cc6*0.0 },},
+
+{"ff":"buck" , "type1":"carb-C"   , "type2":"bcarb-O"  , "params":{"A":ev2kj*48.399296, "rho":a2nm*0.57, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"carb-C"   , "type2":"bcarb-Oh" , "params":{"A":ev2kj*50.578693, "rho":a2nm*0.57, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"carb-O"   , "type2":"bcarb-C"  , "params":{"A":ev2kj*67.475158, "rho":a2nm*0.57, "C":cc6*0.0 },},
+{"ff":"buck" , "type1":"carb-O"   , "type2":"bcarb-H"  , "params":{"A":ev2kj*719.5374, "rho":a2nm*0.25, "C":cc6*0.0 },},
+
+{"ff":"buck" , "type1":"bcarb-O"  , "type2":"bcarb-C"  , "params":{"A":ev2kj*600.000000, "rho":a2nm*0.3, "C":cc6*0.0 },},     
+{"ff":"buck" , "type1":"bcarb-Oh" , "type2":"bcarb-C"  , "params":{"A":ev2kj*600.000000, "rho":a2nm*0.3, "C":cc6*0.0 },},     
+{"ff":"buck" , "type1":"bcarb-H"  , "type2":"bcarb-O"  , "params":{"A":ev2kj*578.218500, "rho":a2nm*0.25, "C":cc6*0.0 },},    
+{"ff":"buck" , "type1":"bcarb-H"  , "type2":"bcarb-Oh" , "params":{"A":ev2kj*420.905400, "rho":a2nm*0.25, "C":cc6*0.0 },},    
+
+# Carlos - ammonium
+{"ff":"lj"  , "type1":"nh4-N"     , "type2":"spcfw-O"  , "params":{"e":ev2kj*0.00871909, "s":a2nm*3.09 },},
+{"ff":"lj"  , "type1":"nh4-H"     , "type2":"spcfw-O"  , "params":{"e":ev2kj*0.0026497 , "s":a2nm*1.95 },},
+{"ff":"buck", "type1":"nh4-H"     , "type2":"carb-O"   , "params":{"A":ev2kj*914.0, "rho":a2nm*0.25, "C":cc6*0.0 },},
+{"ff":"AB"  , "type1":"nh4-N"     , "type2":"nh4-H"    , "params":{"A":cc12*20.0, "B":cc6*0.0 },},
+{"ff":"AB"  , "type1":"nh4-N"     , "type2":"Na"       , "params":{"A":cc12*20.0, "B":cc6*0.0 },},
+
+{"ff":"lj"  , "type1":"nh4-N"     , "type2":"Cl"       , "params":{"e":ev2kj*0.020371434 , "s":a2nm*3.5144801 },},
+{"ff":"buck", "type2":"Ca"        , "type1":"Cl"       , "params":{"A":ev2kj*2715.7, "rho":a2nm*0.309673, "C":cc6*0.0 },},
+{"ff":"buck", "type1":"Na"        , "type2":"Cl"       , "params":{"A":ev2kj*1025.1071 , "rho":a2nm*0.324030, "C":cc6*0.0 },},
+{"ff":"buck", "type1":"Cl"        , "type2":"Cl"       , "params":{"A":ev2kj*8520.0414 , "rho":a2nm*0.300000, "C":cc6*0.0 },},
+
+]
+customImproperParameters = [
+    {"centre":"carb-C" , "params":{"k2" : ck2*13.647 , "k4" : ck4*360.0 } } ,
+    {"centre":"bcarb-C", "params":{"k2" : ck2*11.100 , "k4" : ck4*360.0 } } ,
+]
+    </Script>
+</ForceField>
+

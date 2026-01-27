@@ -1,0 +1,34 @@
+input:
+    coordinates : coord.pdb
+    forcefield : forcefield.xml
+
+forcefield:
+    nonbondedCutoff : 1.0
+    ewaldErrorTolerance : 1e-05
+    nonbondedMethod : PME
+    useDispersionCorrection : False
+    lj14Scale : 0.5
+
+md:
+    ensemble : NVT
+    thermostat : LANG
+    timestep : 0.001
+    numberOfSteps : 1e6
+    temperature : 300
+    thermostatParameter : 1.0
+    reportInterval : 1000
+
+fep:
+    test: true
+    select:
+        residue: M1
+    equilibrationTime : 10
+    reportInterval : 1000
+    type: vdwl
+    lambda_sim: 0.0
+    lambda_eval: 
+    lambda_eval:
+        values: [0.0,1.0]
+
+basic:
+    Platform: CPU

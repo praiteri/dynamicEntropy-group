@@ -1,0 +1,25 @@
+input:
+  coordinates: water_s.pdb
+  forcefield: forcefield.xml
+md:
+  ensemble: NVT
+  numberOfSteps: 1000000
+  reportInterval: 1000
+  temperature: 300
+  thermostat: LANG
+  thermostatParameter: 1.0
+  timestep: 0.001
+restraint:
+  wall_b:
+    fullexp: 0.5*k0*(max(0,d-d0))^2; d=abs(z-zz0); zz0=(z0-lFEP)
+    par: k0,z0,d0,lFEP
+    select:
+      species: O1
+    val: 10000,9.0,2.0,0.5
+  wall_t:
+    fullexp: 0.5*k1*(max(0,d-d1))^2; d=abs(z-zz1); zz1=(z1+lFEP)
+    par: k1,z1,d1,lFEP
+    select:
+      species: O2
+    val: 10000,12.5,2.0,0.5
+energy: true

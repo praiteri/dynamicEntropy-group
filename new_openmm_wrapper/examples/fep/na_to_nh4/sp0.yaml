@@ -1,0 +1,25 @@
+input:
+    coordinates : coord_na.pdb
+    forcefield : forcefield_sp.xml
+
+forcefield:
+    nonbondedCutoff : 1.0
+    ewaldErrorTolerance : 1e-05
+    nonbondedMethod : PME
+    useDispersionCorrection : False
+    rigidWater : True
+    lj14Scale : 0.5
+
+md:
+    ensemble : NVT
+    thermostat : LANG
+    timestep : 0.001
+    numberOfSteps : 1e6
+    temperature : 300
+    thermostatParameter : 1.0
+    reportInterval : 1000
+
+energy: true
+
+basic:
+    Platform: CPU

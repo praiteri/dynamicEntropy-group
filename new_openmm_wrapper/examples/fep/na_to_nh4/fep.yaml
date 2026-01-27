@@ -1,0 +1,46 @@
+input:
+    coordinates : coord.pdb
+    forcefield : forcefield.xml
+    runID: a
+
+forcefield:
+    nonbondedCutoff : 1.0
+    ewaldErrorTolerance : 1e-05
+    nonbondedMethod : PME
+    useDispersionCorrection : False
+    rigidWater : True
+    lj14Scale : 0.5
+
+md:
+    ensemble : NVT
+    thermostat : LANG
+    timestep : 0.001
+    numberOfSteps : 1e6
+    temperature : 300
+    thermostatParameter : 1.0
+    reportInterval : 1000
+
+fep:
+    test: true
+    select1:
+        indices: 0
+    select2:
+        indices: 1,2,3,4,5
+    equilibrationTime : 0
+    reportInterval : 1000
+    type: swap
+    lambda_sim: 0.0
+    lambda_eval: 
+#        bar: 0.5
+#        mbar: 0.5
+        values: [0.0,1.0]
+
+restraint:
+  restraintForce:
+    fullexp: 0.5*k*d^2; d = periodicdistance(x,y,z,x0,y0,z0)
+    par: k,x0,y0,z0
+    val: 10000
+    file: rest.pdb
+
+basic:
+    Platform: CPU

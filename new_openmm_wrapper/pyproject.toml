@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project]
+name = "new_openmm_wrapper"
+version = "1.0.0"
+requires-python = ">= 3.8"
+authors = [
+  {name = "Paolo Raiteri", email = "p.raiteri@curtin.edu.au"},
+]
+
+description = "wrapper for openmm"
+license = {file = "LICENSE"}
+readme = {file = "README.md", content-type = "text/markdown"}
+
+dependencies = [
+    "openmm",
+    "colorama",
+    "pyyaml",
+    "pandas",
+]
+
+[project.scripts]
+runOpenMM_lite = "new_openmm_wrapper.__main__:main"
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "mypy",
+    "pylint",
+] 

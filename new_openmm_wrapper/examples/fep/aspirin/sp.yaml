@@ -1,0 +1,14 @@
+input:
+    coordinates : ./coord.pdb
+    forcefield : ./forcefield.xml
+    runID: 0
+
+forcefield:
+    nonbondedCutoff : 1.0
+    ewaldErrorTolerance : 1e-05
+    nonbondedMethod : PME
+    useDispersionCorrection : False
+    rigidWater : True
+    lj14Scale : 0.5
+
+energy: True
