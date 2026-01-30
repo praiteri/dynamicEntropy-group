@@ -40,16 +40,6 @@ def molecular_dynamics(config):
         my.pretty_log(title="Creating metadynamics object", sep=True)
         MTD = my.initialiseMetadynamics(setup, modeller, system)
 
-    # temp hack
-    # addException(particle1, particle2, chargeProd, sigma, epsilon, replace=False)
-    for force in system.getForces():
-        if isinstance(force, mm.NonbondedForce):
-            for i in range(5):
-                force.addException(i, 5, 0, 1, 0)
-        if isinstance(force, mm.CustomNonbondedForce):
-            for i in range(5):
-                force.addExclusion(i, 5)
-
     simulation = my.createSimulation(
         modeller.topology,
         system,
