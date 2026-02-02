@@ -534,11 +534,6 @@ class FreeEnergyPerturbationConstructor(object):
                             force.addParticleParameterOffset(
                                 self.variable_name, index, charge, 0, 0
                             )
-                        # Charge appears: 0 → 2*charge
-                        elif self.fep_type == "swap_qt":
-                            force.addParticleParameterOffset(
-                                self.variable_name, index, 2 * charge, 0, 0
-                            )
                     elif index in group2:
                         # Charge disappears: charge → 0
                         force.addParticleParameterOffset(self.variable_name, index, -charge, 0, 0)
