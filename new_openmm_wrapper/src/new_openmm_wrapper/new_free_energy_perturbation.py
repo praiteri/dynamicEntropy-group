@@ -4,12 +4,12 @@
 ### the Free Software Foundation, either version 3 of the License, or
 ### (at your option) any later version.
 
+import os
 import sys
 import copy
 
 import numpy as np
 import openmm as mm
-import openmm.app as app
 import openmm.unit as unit
 import new_openmm_wrapper as my
 
@@ -32,6 +32,7 @@ class FreeEnergyPerturbationReporter(object):
         lambda0=None,
         aux_context=None,
         temperature=300,
+        path=".",
     ):
         """
         Initialize the FEP reporter.
@@ -61,13 +62,13 @@ class FreeEnergyPerturbationReporter(object):
         self.calculation_type = calculation_type
 
         if runID is None:
-            self.output_file_bar = "bar.out"
-            self.output_file_mbar = "mbar.out"
-            self.output_file_fep = "fep.out"
+            self.output_file_bar = os.path.join(path, "bar.out")
+            self.output_file_mbar = os.path.join(path, "mbar.out")
+            self.output_file_fep = os.path.join(path, "fep.out")
         else:
-            self.output_file_bar = f"bar.{runID}.out"
-            self.output_file_mbar = f"mbar.{runID}.out"
-            self.output_file_fep = f"fep.{runID}.out"
+            self.output_file_bar = os.path.join(path, f"bar.{runID}.out")
+            self.output_file_mbar = os.path.join(path, f"mbar.{runID}.out")
+            self.output_file_fep = os.path.join(path, f"fep.{runID}.out")
 
         if lambda0 is None:
             my.pretty_log("Simulation lambda must be provided", logger="error")
@@ -144,11 +145,15 @@ class FreeEnergyPerturbationReporter(object):
                     fep_energies = []
                     for ll in lambda_values:
                         self.context.setParameter("lambda", ll)
-                        fep_energies.append(my.computeEnergyFromContext(self.context, quiet=True))
+                        fep_energies.append(
+                            my.computeEnergyFromContext(self.context, quiet=True)
+                        )
                     # Always restore original lambda value
                     self.context.setParameter("lambda", self.lambda0)
                     # Write output
-                    fep_output = f"{stime:10.3f} " + " ".join(f"{e:15.5f}" for e in fep_energies)
+                    fep_output = f"{stime:10.3f} " + " ".join(
+                        f"{e:15.5f}" for e in fep_energies
+                    )
                     self._out_mbar.write(fep_output + "\n")
                     self._out_mbar.flush()
 
@@ -157,7 +162,9 @@ class FreeEnergyPerturbationReporter(object):
                     fep_energies = []
                     for ll in lambda_values:
                         self.context.setParameter("lambda", ll)
-                        fep_energies.append(my.computeEnergyFromContext(self.context, quiet=True))
+                        fep_energies.append(
+                            my.computeEnergyFromContext(self.context, quiet=True)
+                        )
 
                     # Update statistics
                     self.nvalues += 1
@@ -182,14 +189,20 @@ class FreeEnergyPerturbationReporter(object):
                     self._out_bar.flush()
 
                 if calc == "custom":
-                    fep_energies = [my.computeEnergyFromContext(self.context, quiet=True)]
+                    fep_energies = [
+                        my.computeEnergyFromContext(self.context, quiet=True)
+                    ]
                     for ll in lambda_values:
                         self.context.setParameter("lambda", ll)
-                        fep_energies.append(my.computeEnergyFromContext(self.context, quiet=True))
+                        fep_energies.append(
+                            my.computeEnergyFromContext(self.context, quiet=True)
+                        )
                     # Always restore original lambda value
                     self.context.setParameter("lambda", self.lambda0)
                     # Write output
-                    fep_output = f"{stime:10.3f} " + " ".join(f"{e:15.5f}" for e in fep_energies)
+                    fep_output = f"{stime:10.3f} " + " ".join(
+                        f"{e:15.5f}" for e in fep_energies
+                    )
                     self._out_fep.write(fep_output + "\n")
                     self._out_fep.flush()
 
@@ -247,7 +260,9 @@ class FreeEnergyPerturbationConstructor(object):
         elif config["fep"].get("type") == "custom":
             self.fep_atoms = set()
         else:
-            self.fep_atoms = set(my.get_atoms_from_topology(config["fep"], self.modeller.topology))
+            self.fep_atoms = set(
+                my.get_atoms_from_topology(config["fep"], self.modeller.topology)
+            )
 
         self.non_fep_atoms = self.all_atoms - self.fep_atoms
 
@@ -317,14 +332,18 @@ class FreeEnergyPerturbationConstructor(object):
             if isinstance(values, str):
                 lvalues = [float(x) for x in values.split(",")]
             elif not isinstance(values, list):
-                raise Exception("lambda values must be a list or a comma separated list")
+                raise Exception(
+                    "lambda values must be a list or a comma separated list"
+                )
             else:
                 lvalues = [float(x) for x in values]
             self.calculation_type["custom"] = lvalues
 
     def dump_fep_info(self):
         """Print FEP configuration information for debugging."""
-        my.pretty_log(self.config["fep"], logger="DEBUG", title="FEP input commands:", sep=True)
+        my.pretty_log(
+            self.config["fep"], logger="DEBUG", title="FEP input commands:", sep=True
+        )
         my.pretty_log(title="Free Energy Perturbation calculation", sep=True)
         my.pretty_log({"FEP type": self.fep_type}, indent=1)
         my.pretty_log(list(self.fep_atoms), title="FEP atoms:", indent=1, ncols=5)
@@ -388,7 +407,7 @@ class FreeEnergyPerturbationConstructor(object):
         my.initialiseMolecularDynamics(
             self.simulation,
             self.modeller.positions,
-            self.setup.config["md"]["temperature"],
+            self.setup.config["md"],
         )
 
     def create_basic_lambda_simulation(self):
@@ -434,7 +453,9 @@ class FreeEnergyPerturbationConstructor(object):
                     # Set base charge to zero and add lambda-dependent offset
                     # Effective charge = 0 + lambda * charge
                     force.setParticleParameters(index, 0, sigma, epsilon)
-                    force.addParticleParameterOffset(self.variable_name, index, charge, 0, 0)
+                    force.addParticleParameterOffset(
+                        self.variable_name, index, charge, 0, 0
+                    )
 
     def create_fep_vdw_simulation(self):
         """
@@ -452,7 +473,9 @@ class FreeEnergyPerturbationConstructor(object):
             # Remove charges from FEP atoms in nonbonded force
             if isinstance(force, mm.NonbondedForce):
                 for atom_idx in self.fep_atoms:
-                    my.pretty_log(f"Removing charge from atom {atom_idx}", logger="debug")
+                    my.pretty_log(
+                        f"Removing charge from atom {atom_idx}", logger="debug"
+                    )
                     charge, sigma, epsilon = force.getParticleParameters(atom_idx)
                     force.setParticleParameters(atom_idx, 0, sigma, epsilon)
 
@@ -500,13 +523,17 @@ class FreeEnergyPerturbationConstructor(object):
                         f"Particle swapping will cause a change in the system charge ({charge_group1} /= {charge_group2})",
                         logger="warning",
                     )
-                my.pretty_log("FEP swap - applying Nonbonded Exceptions", logger="debug")
+                my.pretty_log(
+                    "FEP swap - applying Nonbonded Exceptions", logger="debug"
+                )
                 for i in group1:
                     for j in group2:
                         force.addException(i, j, 0, 0, 0, replace=True)
 
             if isinstance(force, mm.CustomNonbondedForce):
-                my.pretty_log("FEP swap - applying CustomNonbonded Exclusions", logger="debug")
+                my.pretty_log(
+                    "FEP swap - applying CustomNonbonded Exclusions", logger="debug"
+                )
                 for i in group1:
                     for j in group2:
                         force.addExclusion(i, j)
@@ -536,7 +563,9 @@ class FreeEnergyPerturbationConstructor(object):
                             )
                     elif index in group2:
                         # Charge disappears: charge → 0
-                        force.addParticleParameterOffset(self.variable_name, index, -charge, 0, 0)
+                        force.addParticleParameterOffset(
+                            self.variable_name, index, -charge, 0, 0
+                        )
                     else:
                         my.pretty_log("Particle index doesn't exist", logger="error")
                         sys.exit(1)
@@ -555,7 +584,9 @@ class FreeEnergyPerturbationConstructor(object):
         for index in reversed(forces_to_remove):
             self.system.removeForce(index)
 
-    def add_forces_switch_for_FEP(self, force, fep_variable, fep_atoms, force_expr="fep"):
+    def add_forces_switch_for_FEP(
+        self, force, fep_variable, fep_atoms, force_expr="fep"
+    ):
         import re
 
         fep_type = len(fep_atoms)
@@ -570,7 +601,9 @@ class FreeEnergyPerturbationConstructor(object):
             if customForceFieldsX[k]["expression"] == expr:
                 if fep_type == 1:
                     pattern = re.compile(r"\br\b")
-                    exprFEP1 = customForceFieldsX[k][force_expr].format(var=fep_variable)
+                    exprFEP1 = customForceFieldsX[k][force_expr].format(
+                        var=fep_variable
+                    )
                     exprFEP1 = re.sub(pattern, "d", exprFEP1) + ";d=max(0.1,r)"
 
                     newExpr = [
@@ -591,7 +624,9 @@ class FreeEnergyPerturbationConstructor(object):
 
                 elif fep_type == 2:
                     exprFEP1 = (
-                        customForceFieldsX[k][force_expr].format(var=fep_variable).split(";")[0]
+                        customForceFieldsX[k][force_expr]
+                        .format(var=fep_variable)
+                        .split(";")[0]
                     )
                     exprFEP2 = (
                         customForceFieldsX[k][force_expr]
@@ -640,7 +675,9 @@ class FreeEnergyPerturbationConstructor(object):
 
         # Evaluate energy at simulation lambda
         self.context.setParameter(self.variable_name, self.lambda0)
-        e0 = my.computeEnergyFromContext(self.simulation.context, logger="DEBUG", quiet=quiet)
+        e0 = my.computeEnergyFromContext(
+            self.simulation.context, logger="DEBUG", quiet=quiet
+        )
 
         # Evaluate energies at all lambda values
         self.simulation.context.setPositions(self.modeller.positions)
@@ -652,21 +689,27 @@ class FreeEnergyPerturbationConstructor(object):
                     e = my.computeEnergyFromContext(
                         self.simulation.context, logger="DEBUG", quiet=quiet
                     )
-                    test_result[f"Energy for λ={ll:.3f}"] = f"E={e:14.5f} ; ΔE={e - e0:15.5f}"
+                    test_result[f"Energy for λ={ll:.3f}"] = (
+                        f"E={e:14.5f} ; ΔE={e - e0:15.5f}"
+                    )
             if k == "bar":
                 for ll in v:
                     self.context.setParameter(self.variable_name, ll)
                     e = my.computeEnergyFromContext(
                         self.simulation.context, logger="DEBUG", quiet=quiet
                     )
-                    test_result[f"Energy for λ={ll:.3f}"] = f"E={e:14.5f} ; ΔE={e - e0:15.5f}"
+                    test_result[f"Energy for λ={ll:.3f}"] = (
+                        f"E={e:14.5f} ; ΔE={e - e0:15.5f}"
+                    )
             if k == "custom":
                 for ll in v:
                     self.context.setParameter(self.variable_name, ll)
                     e = my.computeEnergyFromContext(
                         self.simulation.context, logger="DEBUG", quiet=quiet
                     )
-                    test_result[f"Energy for λ={ll:.3f}"] = f"E={e:14.5f} ; ΔE={e - e0:15.5f}"
+                    test_result[f"Energy for λ={ll:.3f}"] = (
+                        f"E={e:14.5f} ; ΔE={e - e0:15.5f}"
+                    )
 
             my.pretty_log(sep=True)
             my.pretty_log(test_result, indent=1)
@@ -693,12 +736,15 @@ class FreeEnergyPerturbationConstructor(object):
         # Add FEP reporter
         self.simulation.reporters.append(
             FreeEnergyPerturbationReporter(
-                self.config["fep"].get("reportInterval", self.setup.config["md"]["reportInterval"]),
+                self.config["fep"].get(
+                    "reportInterval", self.setup.config["md"]["reportInterval"]
+                ),
                 self.simulation.context,
                 runID=self.config["input"].get("runID"),
                 calculation_type=self.calculation_type,
                 lambda0=self.lambda0,
                 temperature=self.setup.config["md"]["temperature"],
+                path=self.config["fep"].get("path", "."),
             )
         )
 

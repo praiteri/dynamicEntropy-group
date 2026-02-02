@@ -66,7 +66,9 @@ class simulationSetup(object):
 
     def setExclusionsList(self, system, nbonds=3):
         bonds = self.getBondsList()
-        listFromBonds = app.forcefield._findExclusions(bonds, nbonds, system.getNumParticles())
+        listFromBonds = app.forcefield._findExclusions(
+            bonds, nbonds, system.getNumParticles()
+        )
         listFromNonBonded = []
         for force in system.getForces():
             if force.getName() == "NonbondedForce":
@@ -202,22 +204,8 @@ class simulationSetup(object):
             "restraint": None,
             "osmotic": None,
             "catalyst": None,
-            "forwardFluxSampling": {
-                "lambda": [],
-                "nsteps": 1000000,
-                "nsample": 1,
-                "ntrials": 100000,
-                "lambdaID": 0,
-                "sigma": 0.1,
-                "cv": {
-                    "type": "pair",
-                    "expression": "0.5*erfc((r-0.31)/0.07)",
-                    "set1": [0],
-                    "set2": [1, 4, 7, 10, 13, 16],
-                    "cutoff": 1.0,
-                },
-            },
             "fep": {
+                "path": ".",
                 "test": False,
                 "type": None,
                 "select": [],
@@ -249,6 +237,21 @@ class simulationSetup(object):
             #     "output": "ti.{}.out".format(self.runID),
             #     "reportInterval": 1000,
             # },
+            # "forwardFluxSampling": {
+            #     "lambda": [],
+            #     "nsteps": 1000000,
+            #     "nsample": 1,
+            #     "ntrials": 100000,
+            #     "lambdaID": 0,
+            #     "sigma": 0.1,
+            #     "cv": {
+            #         "type": "pair",
+            #         "expression": "0.5*erfc((r-0.31)/0.07)",
+            #         "set1": [0],
+            #         "set2": [1, 4, 7, 10, 13, 16],
+            #         "cutoff": 1.0,
+            #     },
+            # },
         }
 
     ################################################################################
@@ -260,4 +263,6 @@ class simulationSetup(object):
         )
 
     def dumpParametersMD(self):
-        my.pretty_log(self.config["md"], title="Molecular dynamics setup", logger="info")
+        my.pretty_log(
+            self.config["md"], title="Molecular dynamics setup", logger="info"
+        )
