@@ -40,16 +40,6 @@ def molecular_dynamics(config):
         my.pretty_log(title="Creating metadynamics object", sep=True)
         MTD = my.initialiseMetadynamics(setup, modeller, system)
 
-    # temp hack
-    # addException(particle1, particle2, chargeProd, sigma, epsilon, replace=False)
-    for force in system.getForces():
-        if isinstance(force, mm.NonbondedForce):
-            for i in range(5):
-                force.addException(i, 5, 0, 1, 0)
-        if isinstance(force, mm.CustomNonbondedForce):
-            for i in range(5):
-                force.addExclusion(i, 5)
-
     simulation = my.createSimulation(
         modeller.topology,
         system,
@@ -73,9 +63,7 @@ def molecular_dynamics(config):
     # - test forces
     # - ...
 
-    initialiseMolecularDynamics(
-        simulation, modeller.positions, setup.config["md"]["temperature"]
-    )
+    initialiseMolecularDynamics(simulation, modeller.positions, setup.config["md"]["temperature"])
 
     if config.get("metadynamics", None) is not None:
         my.pretty_log(title="Adding HILLS reporter")
@@ -150,9 +138,7 @@ def oldAddReporters(simulation, setup, modeller, system):
     if mdConfig["screenOutput"] is not None:
         mdConfig["screenOutput"]["totalSteps"] = mdConfig["numberOfSteps"]
         if mdConfig["screenOutput"]["reportInterval"] == 0:
-            mdConfig["screenOutput"]["reportInterval"] = int(
-                mdConfig["numberOfSteps"] / 100
-            )
+            mdConfig["screenOutput"]["reportInterval"] = int(mdConfig["numberOfSteps"] / 100)
 
         if mdConfig["simulationTime"] is not None:
             mdConfig["screenOutput"]["progress"] = False
@@ -181,9 +167,7 @@ def oldAddReporters(simulation, setup, modeller, system):
             elif mdConfig["screenOutput"]["file"].lower() == "stderr":
                 mdConfig["screenOutput"]["file"] = sys.stderr
 
-            simulation.reporters.append(
-                my.ExtendedStateDataReporter(**mdConfig["screenOutput"])
-            )
+            simulation.reporters.append(my.ExtendedStateDataReporter(**mdConfig["screenOutput"]))
 
     # Log file reporter
     if mdConfig["logOutput"] is not None:
@@ -193,17 +177,11 @@ def oldAddReporters(simulation, setup, modeller, system):
         if setup.debug:
             my.dumpInfo("log output", mdConfig["logOutput"])
         else:
+            logger.info("  {:40s} = {}".format("log file", mdConfig["logOutput"]["file"]))
             logger.info(
-                "  {:40s} = {}".format("log file", mdConfig["logOutput"]["file"])
+                "  {:40s} = {}".format("log frequency", mdConfig["logOutput"]["reportInterval"])
             )
-            logger.info(
-                "  {:40s} = {}".format(
-                    "log frequency", mdConfig["logOutput"]["reportInterval"]
-                )
-            )
-        simulation.reporters.append(
-            my.ExtendedStateDataReporter(**mdConfig["logOutput"])
-        )
+        simulation.reporters.append(my.ExtendedStateDataReporter(**mdConfig["logOutput"]))
 
     # Trajectory output reporter
     if (
@@ -218,9 +196,7 @@ def oldAddReporters(simulation, setup, modeller, system):
             my.dumpInfo("trajectory output", mdConfig["trajectoryOutput"])
         else:
             logger.info(
-                "  {:40s} = {}".format(
-                    "trajectory file", mdConfig["trajectoryOutput"]["file"]
-                )
+                "  {:40s} = {}".format("trajectory file", mdConfig["trajectoryOutput"]["file"])
             )
             logger.info(
                 "  {:40s} = {}".format(
@@ -286,6 +262,4 @@ def oldAddReporters(simulation, setup, modeller, system):
     if mdConfig["CMMotionRemover"] is not None:
         if mdConfig["CMMotionRemover"].get("type") == "custom":
             settings = mdConfig["CMMotionRemover"]
-            simulation.reporters.append(
-                my.customCOMRemover(settings, modeller.topology)
-            )
+            simulation.reporters.append(my.customCOMRemover(settings, modeller.topology))
