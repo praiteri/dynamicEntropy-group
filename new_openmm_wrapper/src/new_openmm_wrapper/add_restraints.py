@@ -159,6 +159,8 @@ def positionsRestraint(forceName, settings, system, topology, coordinates=None):
 
     if "lambdaFEP" in expression:
         force.addGlobalParameter("lambdaFEP", 0.0)
+    if "lambda" in expression:
+        force.addGlobalParameter("lambda", 0.0)
 
     for x in variables:
         force.addPerParticleParameter(x)
