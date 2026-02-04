@@ -10,7 +10,9 @@ import numpy as np
 import re
 
 
-def customNonbondedForce(system, setup, interactionsList, customForceFields, cutoffDistance):
+def customNonbondedForce(
+    system, setup, interactionsList, customForceFields, cutoffDistance
+):
     """
     Add custom non bonded forces defined in the focefield XML file.
 
@@ -181,79 +183,4 @@ def debugCustomForcefieldInteractions(fparam, listOfAtomTypes, paramMatrix):
         logger.debug(line)
     line = "_" * (len(paramMatrix) * 8 + 7)
     logger.debug(line)
-    return
-
-
-def addForcesSwitchFEP(name, expr, exprFEP):
-    expr = expr.replace(" ", "")
-    pattern = re.compile(r"\br\b")
-    expr = re.sub(pattern, "d", expr).split(";")
-
-    newExpr = ["XX*fep + (1-XX)*ff ; ; fep=" + exprFEP + "; ; ff=" + (";").join(expr) + " ;"]
-
-    # Add this to avoid 1/0
-    newExpr.append("d=max(0.1,r)")
-
-    # p = 0 atom is involved in FEP, m is the residue ID
-    # XX                  -> 1 means to use FEP force
-    # MM = delta(mm1-mm2) -> 1 means same molecules --> no fep
-    # PP = delta(pp1*pp2) -> 1 means one of the atoms is perturbed
-    # select(x,y,z) = z if x = 0, y otherwise
-    # MM == 1 -> returns 0 [NO FEP - same molecule]
-    # MM == 0 -> returns PP ->
-    #   PP = 0 [FEP] <- 1-delta(0x0) or delta(0x1)
-    #   PP = 1 [NO FEP] <- delta(1x1)
-    newExpr.append("XX=select(MM,0,PP)")
-    newExpr.append("PP=delta(fepAtom1*fepAtom2)")
-    newExpr.append("MM=delta(resID1-resID2)")
-
-    return (";").join(newExpr)
-
-
-def addForcesSwitchFEP2(cft):
-    logger = logging.getLogger("dynamicEntropy")
-
-    expr = cft["expression"].split(";")
-
-    if "newexpr" in cft:
-        string = cft["newexpr"]["expression"].replace(" ", "")
-        newExpr = string.split(";")
-
-        cft["init"].update(cft["newexpr"]["init"])
-        cft["params"] += cft["newexpr"]["params"]
-    else:
-        # Create regex patterns from the list
-        # and add "1" to the parameters' names
-        string = cft["expression"].replace(" ", "")
-        for prm in cft["params"]:
-            pattern = re.compile(r"\b" + re.escape(prm) + r"\b")
-            string = re.sub(pattern, prm + "1", string)
-        newExpr = string.split(";")
-        logger.warning("FEP: New FF expression was automatically generated")
-
-        for x in cft["params"]:
-            cft["init"][x + "1"] = cft["init"][x]
-        cft["params"] += [x + "1" for x in cft["params"]]
-
-    newFF = ["XX*lambdaFF*fep + (1-lambdaFF*XX)*ff"]
-    newFF += ["fep=" + newExpr[0]]
-    newFF += ["ff=" + expr[0]]
-    newFF += newExpr[1:]
-    newFF += expr[1:]
-
-    # p = 0 atom is involved in FEP, m is the residue ID
-    # XX                  -> 1 means to use FEP force
-    # MM = delta(mm1-mm2) -> 1 means same molecules --> no fep
-    # PP = delta(pp1*pp2) -> 1 means one of the atoms is perturbed
-    # select(x,y,z) = z if x = 0, y otherwise
-    # MM == 1 -> returns 0 [NO FEP - same molecule]
-    # MM == 0 -> returns PP ->
-    #   PP = 0 [FEP] <- 1-delta(0x0) or delta(0x1)
-    #   PP = 1 [NO FEP] <- delta(1x1)
-    newFF.append("XX=select(MM,0,PP)")
-    newFF.append("PP=delta(fepAtom1*fepAtom2)")
-    newFF.append("MM=delta(resID1-resID2)")
-
-    cft["expression"] = (";").join(newFF)
-
     return

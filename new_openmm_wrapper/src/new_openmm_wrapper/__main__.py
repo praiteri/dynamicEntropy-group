@@ -35,10 +35,11 @@ def main():
     else:
         logger = my.create_logger(filename=args.logfile)
 
-    # my.test_pretty_log()
-
     my.pretty_log(title="runOpenMM_lite", sep=True)
     my.pretty_log(vars(args), logger="DEBUG", title="Command line arguments:", sep=True)
+
+    if args.write_sample is not None:
+        my.write_sample_input(args.write_sample)
 
     # Read input
     try:

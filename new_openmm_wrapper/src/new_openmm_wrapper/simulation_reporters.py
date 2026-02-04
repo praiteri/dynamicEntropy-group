@@ -7,6 +7,7 @@
 import sys
 import new_openmm_wrapper as my
 import openmm.app as app
+import glob
 
 
 class simulationReporters:
@@ -14,13 +15,21 @@ class simulationReporters:
 
     def __init__(
         self,
-        simulation,
-        runID=0,
+        simulation=None,
+        runID=None,
         reportInterval=1000,
         numberOfSteps=None,
         configReporters=None,
     ):
+
         self.runID = runID
+        if runID is None:
+            self.runID_str = "."
+        else:
+            if isinstance(runID, str) and runID.lower() == "auto":
+                runID = len(glob.glob("output.*.out"))
+            self.runID_str = f".{runID}."
+
         self.reportInterval = reportInterval
 
         self.reporters = {
@@ -44,7 +53,7 @@ class simulationReporters:
                 "totalSteps": None,
             },
             "log": {
-                "file": "output.{}.out".format(self.runID),
+                "file": "output{}out".format(self.runID_str),
                 "reportInterval": self.reportInterval,
                 "separator": ",",
                 "step": False,
@@ -62,19 +71,19 @@ class simulationReporters:
                 "barostat": None,
             },
             "dcd": {
-                "file": "trajectory.{}.dcd".format(self.runID),
+                "file": "trajectory{}dcd".format(self.runID_str),
                 "reportInterval": self.reportInterval,
                 "enforcePeriodicBox": True,
             },
             "xtc": {
-                "file": "trajectory.{}.xtc".format(self.runID),
+                "file": "trajectory{}xtc".format(self.runID_str),
                 "reportInterval": self.reportInterval,
                 "enforcePeriodicBox": True,
             },
             "restart": {
-                "file": "restart.{}.xml".format(self.runID),
-                "reportInterval": 1000000,
-                "checkpoint": "state.chk",
+                "reportInterval": 100000,
+                "xml": "restart{}xml".format(self.runID_str),
+                "chk": "restart{}chk".format(self.runID_str),
             },
         }
 
@@ -84,7 +93,7 @@ class simulationReporters:
             self.reporters["screen"]["progress"] = True
             self.reporters["screen"]["remainingTime"] = True
 
-        self.active_reporters = ["screen", "log"]
+        self.active_reporters = ["log"]
 
         if configReporters is not None:
             for rep, val in configReporters.items():
@@ -103,18 +112,43 @@ class simulationReporters:
                 logger="WARNING",
             )
 
+        if simulation is None:
+            return
+
         for rep in self.active_reporters:
             my.pretty_log(f" Creating {rep.upper()} reporter", sep=True)
 
             if rep == "screen":
                 self.addScreenOutput(simulation, self.reporters[rep])
+
             elif rep == "log":
                 self.addFileOutput(simulation, self.reporters[rep])
+
             elif rep == "dcd":
                 self.addDCDOutput(simulation, self.reporters[rep])
+
             elif rep == "xtc":
                 self.addXTCOutput(simulation, self.reporters[rep])
 
+            elif rep == "restart":
+                if self.reporters[rep]["xml"] is not None:
+                    self.addChekpoint(
+                        simulation,
+                        {
+                            "file": self.reporters[rep]["xml"],
+                            "reportInterval": self.reporters[rep]["reportInterval"],
+                            "writeState": True,
+                        },
+                    )
+                if self.reporters[rep]["chk"] is not None:
+                    self.addChekpoint(
+                        simulation,
+                        {
+                            "file": self.reporters[rep]["chk"],
+                            "reportInterval": self.reporters[rep]["reportInterval"],
+                            "writeState": False,
+                        },
+                    )
         return
 
     def addScreenOutput(self, simulation, config):
@@ -152,3 +186,12 @@ class simulationReporters:
             logger="debug",
         )
         simulation.reporters.append(app.XTCReporter(**config))
+
+    def addChekpoint(self, simulation, config):
+        my.pretty_log(
+            config,
+            title="Checkpoint reporter:",
+            indent=1,
+            logger="debug",
+        )
+        simulation.reporters.append(app.CheckpointReporter(**config))

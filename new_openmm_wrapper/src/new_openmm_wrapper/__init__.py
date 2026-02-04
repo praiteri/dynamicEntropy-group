@@ -29,7 +29,6 @@ from .integrator import *
 from .molecular_dynamics import *
 from .csvr_integrator import *
 from .extendedStateDataReporter import *
-from .dump_restart_files import *
 
 from .new_free_energy_perturbation import *
 

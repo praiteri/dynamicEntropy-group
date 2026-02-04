@@ -16,6 +16,9 @@ class simulationSetup(object):
     def __init__(self, cmd):
         self.runID = None
         self.defaultParameters()
+        if cmd is None:
+            return
+
         self.setParameters(cmd)
 
         my.pretty_log({"OpenMM Version": mm.Platform.getOpenMMVersion()}, sep=True)
@@ -66,9 +69,7 @@ class simulationSetup(object):
 
     def setExclusionsList(self, system, nbonds=3):
         bonds = self.getBondsList()
-        listFromBonds = app.forcefield._findExclusions(
-            bonds, nbonds, system.getNumParticles()
-        )
+        listFromBonds = app.forcefield._findExclusions(bonds, nbonds, system.getNumParticles())
         listFromNonBonded = []
         for force in system.getForces():
             if force.getName() == "NonbondedForce":
@@ -176,8 +177,7 @@ class simulationSetup(object):
                 # "CMMotionRemover": 1000,
             },
             "energy": False,
-            "rerun": False,
-            "test_forces": False,
+            "minimise": {"tolerance": 10, "maxIterations": 0, "output": "geopt.pdb"},
             "md": {
                 "minimise": False,
                 "ensemble": "NVT",
@@ -200,7 +200,6 @@ class simulationSetup(object):
                 },
             },
             "reporters": None,
-            "minimise": {"tolerance": 10, "maxIterations": 0, "output": "geopt.pdb"},
             "restraint": None,
             "osmotic": None,
             "catalyst": None,
@@ -231,6 +230,8 @@ class simulationSetup(object):
                 "cv2": None,
             },
             "plumed": None,
+            # "rerun": False,
+            # "test_forces": False,
             # "ti": {
             #     "force": "tiForce",
             #     "equilibrationSteps": 10000.0,
@@ -263,6 +264,146 @@ class simulationSetup(object):
         )
 
     def dumpParametersMD(self):
-        my.pretty_log(
-            self.config["md"], title="Molecular dynamics setup", logger="info"
-        )
+        my.pretty_log(self.config["md"], title="Molecular dynamics setup", logger="info")
+
+
+def write_sample_input(args):
+    import io
+    import yaml
+    import sys
+    import numpy as np
+    import openmm.unit as unit
+    import openmm.app as app
+
+    def fix_entries(my_dict):
+        if not isinstance(my_dict, dict):
+            return my_dict
+
+        for k, v in my_dict.items():
+            if isinstance(v, dict):
+                fix_entries(v)
+            else:
+                if isinstance(v, type(app.forcefield.PME)):
+                    my_dict[k] = f"{v}"
+                elif unit.is_quantity(v):
+                    my_dict[k] = v._value
+                elif isinstance(v, io.TextIOWrapper):
+                    my_dict[k] = "stdout"
+                else:
+                    my_dict[k] = v
+
+        return my_dict
+
+    setup = simulationSetup(None)
+    output_dict = fix_entries(setup.config)
+
+    minimal_output = True
+    if len(args) == 1 and "," in args[0]:
+        args = args[0].split(",")
+
+    if len(args) == 0 or (len(args) == 1 and args[0] == "all"):
+        list_of_fields = {k: 1 for k in setup.config}
+
+    else:
+        list_of_fields = {k: 0 for k in setup.config}
+
+        for item in args:
+            if item in list_of_fields:
+                list_of_fields[item] = 1
+            else:
+                if item == "full":
+                    minimal_output = False
+                elif item == "all":
+                    list_of_fields = {k: 1 for k in setup.config}
+                else:
+                    my.pretty_log(f"Unknown input section: {item}", logger="error")
+                    sys.exit(1)
+
+    if not minimal_output:
+        if sum(list_of_fields.values()) == 0:
+            list_of_fields = {k: 1 for k in setup.config}
+        else:
+            for x in [
+                "debug",
+                "basic",
+                "input",
+                "forcefield",
+            ]:
+                list_of_fields[x] = 1
+
+    log_str = [k for k, v in list_of_fields.items() if v == 1]
+    my.pretty_log(
+        log_str,
+        title="Example input file for:",
+        sep=True,
+        align_width=0,
+        ncols=4,
+    )
+
+    to_remove = []
+    for k in output_dict.keys():
+        if list_of_fields[k] == 0:
+            to_remove.append(k)
+    for k in to_remove:
+        del output_dict[k]
+
+    if list_of_fields["minimise"] == 1:
+        if not minimal_output:
+            output_dict["minimise"] = fix_entries(setup.config["minimise"])
+        else:
+            output_dict["minimise"] = True
+
+    if list_of_fields["md"] == 1:
+        if not minimal_output:
+            list_of_fields["reporters"] = 1
+
+    if list_of_fields["reporters"] == 1:
+        if not minimal_output:
+            output_dict["reporters"] = fix_entries(my.simulationReporters().reporters)
+        else:
+            output_dict["reporters"] = {
+                "screen": True,
+                "log": True,
+                "dcd": False,
+                "xtc": {"file": "traj.xtc", "reportInterval": 2000},
+                "restart": {
+                    "xml": {"file": "restart.xml", "reportInterval": 100000},
+                    "chk": {"file": "restart.chk", "reportInterval": 100000},
+                },
+            }
+
+    if "restraint" in list(output_dict.keys()):
+        output_dict["restraint"] = example_restraint_cmd()
+
+    # else:
+    #     list_of_fields = set()
+    #     for item in args:
+    #         if "," in item:
+    #             list_of_fields += item.split(",")
+    #         else:
+    #             list_of_fields.append(item)
+
+    # for item in list_of_fields:
+    #     if item == "md":
+    #         list_of_fields +=
+
+    my.pretty_log(sep=True)
+    yaml.dump(output_dict, sys.stdout, default_flow_style=False, sort_keys=False, indent=4)
+    sys.exit(0)
+
+
+def example_restraint_cmd():
+    return {
+        "wall_b": {
+            "fullexp": "0.5*k0*(max(0,d-d0))^2; d=abs(z-z0)",
+            "par": "k0,z0,d0",
+            "select": {"species": "O1"},
+            "val": "10000,9.0,2.0",
+        },
+        "restraintForce": {
+            "fullexp": "0.5*k*d^2; d = periodicdistance(x,y,z,x0,y0,z0)",
+            "par": "k,x0,y0,z0",
+            "val": 10000,
+            "file": "rest.pdb",
+        },
+    }

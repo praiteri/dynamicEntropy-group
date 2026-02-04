@@ -64,6 +64,6 @@ class forceReporter(object):
             #     mean[2],
             #     stderr[2],
             # )
-        print(string)
+        # print(string)
         self._out.write(string + "\n")
         self._out.flush()

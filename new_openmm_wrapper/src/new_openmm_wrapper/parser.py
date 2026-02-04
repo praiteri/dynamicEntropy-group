@@ -6,6 +6,7 @@
 
 import argparse
 
+
 def parse_arguments():
     """
     Parse command line arguments.
@@ -21,8 +22,9 @@ def parse_arguments():
     parser.add_argument(
         dest="input",
         type=str,
+        nargs="?",  # Make it optional
         default="input.yaml",
-        help="Input YAML configuration file (default: mdp.yaml)",
+        help="Input YAML configuration file (default: input.yaml)",
     )
 
     parser.add_argument(
@@ -30,12 +32,24 @@ def parse_arguments():
     )
 
     parser.add_argument(
-        "-l", "--log", dest="logfile", type=str, default=None, help="Redirect screen output to file"
+        "-l",
+        "--log",
+        dest="logfile",
+        type=str,
+        default=None,
+        help="Redirect screen output to file",
+    )
+
+    parser.add_argument(
+        "--keys",
+        dest="write_sample",
+        type=str,
+        nargs="*",  # Optional argument
+        # const="full",  # Default value when --keys is used without argument
+        default=None,  # Default when --keys is not used at all
+        help="Write a sample input YAML file and exit (default: sample_input.yaml)",
     )
 
     args = parser.parse_args()
 
-
-
     return args
-

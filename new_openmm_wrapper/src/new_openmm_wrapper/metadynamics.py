@@ -32,7 +32,9 @@ def initialiseMetadynamics(setup, modeller, system):
             if cv is None:
                 continue
 
-            collectiveVariablesForce = my.createCollectiveVariables(cv, modeller.topology, system)
+            collectiveVariablesForce = my.createCollectiveVariables(
+                cv, modeller.topology, system
+            )
             metadynamicsWalls(system, collectiveVariablesForce, cv)
 
             newCV = app.BiasVariable(
@@ -107,14 +109,12 @@ def runMetadynamics(setup, MTD, simulation):
     Wrapper to run metadynamics steps and save the final free energy.
     """
     my.pretty_log(
-        title=f"Running metadynamics for {setup.config['md']['numberOfSteps']} steps", sep=True
+        title=f"Running metadynamics for {setup.config['md']['numberOfSteps']} steps",
+        sep=True,
     )
 
     MTD.step(simulation, setup.config["md"]["numberOfSteps"])
     np.save("freeEnergy", MTD.getFreeEnergy())
-    if setup.config["md"]["restartOutput"]["file"] is not None:
-        my.pretty_log(f"Writing restart file ({setup.config['md']['restartOutput']['file']})")
-        # my.dumpRestartFiles(simulation, setup.config["md"]["restartOutput"]["file"])
 
 
 def createPlumed(plumed_file, system):

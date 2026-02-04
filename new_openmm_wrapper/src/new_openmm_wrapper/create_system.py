@@ -229,15 +229,6 @@ def createSystem(setup):
                 )
             break
 
-    # # Set force groups
-    # log_str = {}
-    # for n, f in enumerate(system.getForces()):
-    #     f.setForceGroup(n + 1)
-    #     log_str[n + 1] = f.getName()
-    # my.pretty_log(
-    #     title="Creating force groups:", data=log_str, align_width=0, logger="debug"
-    # )
-
     # Compute system properties for basic checks
     my.checkSystem(system, modeller.topology, forcefield, pdb.positions)
 
