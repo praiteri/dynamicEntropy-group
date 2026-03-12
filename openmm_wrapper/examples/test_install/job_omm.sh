@@ -20,7 +20,7 @@ module load rocm/6.3.1
 module load python/3.11.6
 module load py-numpy/1.26.4
 
-source /software/projects/pawsey0185/${USER}/python_venv/work/bin/activate
+source /software/projects/pawsey0185/${USER}/python_venv/myenv/bin/activate
 
 cmd="srun -N 1 -n 1 -c 1"
 
