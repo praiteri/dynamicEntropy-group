@@ -5,7 +5,7 @@
 #SBATCH --ntasks-per-node=8
 #SBATCH --gpus-per-node=1
 #SBATCH --time=5:00
-#SBATCH --account=pawsey0184-gpu
+#SBATCH --account=pawsey0185-gpu
 
 export MPICH_GPU_SUPPORT_ENABLED=1 #This allows for GPU-aware MPI communication among GPUs
 export ROCR_VISIBLE_DEVICES=0
@@ -20,7 +20,7 @@ module load rocm/6.3.1
 module load python/3.11.6
 module load py-numpy/1.26.4
 
-source /software/projects/pawsey0185/paolo/python_venv/work/bin/activate
+source /software/projects/pawsey0185/${USER}/python_venv/work/bin/activate
 
 cmd="srun -N 1 -n 1 -c 1"
 

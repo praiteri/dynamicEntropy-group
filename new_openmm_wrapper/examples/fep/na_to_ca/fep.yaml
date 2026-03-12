@@ -1,7 +1,7 @@
 input:
     coordinates : coord.pdb
     forcefield : forcefield.xml
-    runID: a
+    runID: 0
 
 forcefield:
     nonbondedCutoff : 1.0
@@ -21,7 +21,8 @@ md:
     reportInterval : 1000
 
 fep:
-    test: true
+#    test: true
+    path: /Users/237454k/Programs/dynamicEntropy-group/new_openmm_wrapper/examples/fep/na_to_ca
     select1:
         indices: 0
     select2:
