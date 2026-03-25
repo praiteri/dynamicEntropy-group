@@ -5,6 +5,7 @@
 ### (at your option) any later version.
 
 import numpy as np
+import glob
 
 import openmm as mm
 import openmm.app as app
@@ -12,9 +13,69 @@ import openmm.unit as unit
 import new_openmm_wrapper as my
 
 
+def update_force_groups(context):
+    # Find the highest currently assigned force group AND build initial energy_breakdown
+    max_group = 0
+    energy_breakdown = {}
+
+    #for force in context.getSystem().getForces():
+    #    if isinstance(force, mm.CMMotionRemover):
+    #        continue
+
+    #    group = force.getForceGroup()
+    #    max_group = max(max_group, group)
+    #    print(force.getName(),group,max_group)
+
+    #    # Record already-assigned force groups
+    #    #if group != 0:
+    #    #    energy_breakdown[force.getName()] = {group}
+    #    #    if isinstance(force, mm.NonbondedForce):
+    #    #        reciprocal_group = force.getReciprocalSpaceForceGroup()
+    #    #        max_group = max(max_group, reciprocal_group)
+    #    #        energy_breakdown["ReciprocalSpaceForce"] = {reciprocal_group}
+    #    #        energy_breakdown["Total non-bonded energy"] = {group, reciprocal_group}
+
+    ngroups = max_group
+
+    # Loop over forces and assign groups ONLY to unassigned ones
+    for force in context.getSystem().getForces():
+        if isinstance(force, mm.CMMotionRemover):
+            continue
+
+        # Only handle unassigned forces
+        if force.getForceGroup() == 0:
+            ngroups += 1
+            if ngroups > 31:
+                raise ValueError("Exceeded maximum number of force groups (31)")
+
+            force.setForceGroup(ngroups)
+            energy_breakdown[force.getName()] = {ngroups}
+
+        #    if isinstance(force, mm.NonbondedForce):
+        #        ngroups += 1
+        #        if ngroups > 31:
+        #            raise ValueError("Exceeded maximum number of force groups (31)")
+        #        force.setReciprocalSpaceForceGroup(ngroups)
+        #        energy_breakdown["ReciprocalSpaceForce"] = {ngroups}
+        #        energy_breakdown["Total non-bonded energy"] = {ngroups - 1, ngroups}
+
+    # Log the updated force group assignments
+    my.pretty_log(
+        title="Updated force groups:",
+        data=energy_breakdown,
+        align_width=0,
+        logger="debug",
+    )
+
+    # Reinitialize context to apply force group changes
+    context.reinitialize(preserveState=True)
+    return energy_breakdown
+
+
 class simulationSetup(object):
     def __init__(self, cmd):
-        self.runID = None
+        self.setRunID(cmd["input"].get("runID"))
+
         self.defaultParameters()
         if cmd is None:
             return
@@ -23,6 +84,11 @@ class simulationSetup(object):
 
         my.pretty_log({"OpenMM Version": mm.Platform.getOpenMMVersion()}, sep=True)
         my.pretty_log(self.config["basic"])
+
+    def setRunID(self, runID):
+        self.runID = runID
+        if isinstance(runID, str) and runID.lower() == "auto":
+            self.runID = len(glob.glob("output.*.out"))
 
     ################################################
     def setAtomTypesFromFF(self, ff):
@@ -69,13 +135,15 @@ class simulationSetup(object):
 
     def setExclusionsList(self, system, nbonds=3):
         bonds = self.getBondsList()
-        listFromBonds = app.forcefield._findExclusions(bonds, nbonds, system.getNumParticles())
+        listFromBonds = app.forcefield._findExclusions(
+            bonds, nbonds, system.getNumParticles()
+        )
         listFromNonBonded = []
         for force in system.getForces():
             if force.getName() == "NonbondedForce":
                 for i in range(force.getNumExceptions()):
-                    l = force.getExceptionParameters(i)
-                    listFromNonBonded.append((l[0], l[1], 0))
+                    ll = force.getExceptionParameters(i)
+                    listFromNonBonded.append((ll[0], ll[1], 0))
 
         if len(listFromBonds) == len(listFromNonBonded):
             self.listOfExclusions = listFromBonds
@@ -264,14 +332,15 @@ class simulationSetup(object):
         )
 
     def dumpParametersMD(self):
-        my.pretty_log(self.config["md"], title="Molecular dynamics setup", logger="info")
+        my.pretty_log(
+            self.config["md"], title="Molecular dynamics setup", logger="info"
+        )
 
 
 def write_sample_input(args):
     import io
     import yaml
     import sys
-    import numpy as np
     import openmm.unit as unit
     import openmm.app as app
 
@@ -388,7 +457,9 @@ def write_sample_input(args):
     #         list_of_fields +=
 
     my.pretty_log(sep=True)
-    yaml.dump(output_dict, sys.stdout, default_flow_style=False, sort_keys=False, indent=4)
+    yaml.dump(
+        output_dict, sys.stdout, default_flow_style=False, sort_keys=False, indent=4
+    )
     sys.exit(0)
 
 

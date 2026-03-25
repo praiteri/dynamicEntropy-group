@@ -157,8 +157,6 @@ def positionsRestraint(forceName, settings, system, topology, coordinates=None):
     # if "lambdaTI" in expression:
     #     force.addGlobalParameter("lambdaTI", 0.0)
 
-    if "lambdaFEP" in expression:
-        force.addGlobalParameter("lambdaFEP", 0.0)
     if "lambda" in expression:
         force.addGlobalParameter("lambda", 0.0)
 

@@ -4,10 +4,7 @@
 ### the Free Software Foundation, either version 3 of the License, or
 ### (at your option) any later version.
 
-import numpy as np
-import openmm as mm
 import openmm.unit as unit
-from openmm.unit import MOLAR_GAS_CONSTANT_R
 
 import new_openmm_wrapper as my
 
@@ -24,27 +21,7 @@ def computeEnergyFromContext(
     if quiet:
         return total_energy
 
-    # Set force groups
-    energy_breakdown = {}
-    n = 1
-    for i, f in enumerate(c.getSystem().getForces()):
-        if isinstance(f, mm.CMMotionRemover):
-            continue
-        f.setForceGroup(i + n)
-        energy_breakdown[f.getName()] = {i + n}
-        if isinstance(f, mm.NonbondedForce):
-            n += 1
-            f.setReciprocalSpaceForceGroup(i + n)
-            energy_breakdown["ReciprocalSpaceForce"] = {i + n}
-            energy_breakdown["Total electrostatics"] = {i + n - 1, i + n}
-
-    my.pretty_log(
-        title="Creating force groups:",
-        data=energy_breakdown,
-        align_width=0,
-        logger="debug",
-    )
-    c.reinitialize(preserveState=True)
+    energy_breakdown = my.update_force_groups(c)
 
     parameters = c.getParameters()
     if len(parameters) > 0:

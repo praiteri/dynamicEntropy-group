@@ -396,6 +396,9 @@ class FreeEnergyPerturbationConstructor(object):
 
     def initialise_md(self):
         """Initialize molecular dynamics simulation with reporters and initial conditions."""
+
+        my.update_force_groups(self.simulation.context)
+
         _ = my.simulationReporters(
             self.simulation,
             runID=self.setup.config["input"]["runID"],

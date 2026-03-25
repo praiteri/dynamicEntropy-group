@@ -7,7 +7,6 @@
 import sys
 import new_openmm_wrapper as my
 import openmm.app as app
-import glob
 
 
 class simulationReporters:
@@ -22,13 +21,9 @@ class simulationReporters:
         configReporters=None,
     ):
 
-        self.runID = runID
-        if runID is None:
-            self.runID_str = "."
-        else:
-            if isinstance(runID, str) and runID.lower() == "auto":
-                runID = len(glob.glob("output.*.out"))
-            self.runID_str = f".{runID}."
+        runID_str = "."
+        if runID is not None:
+            runID_str = f".{runID}."
 
         self.reportInterval = reportInterval
 
@@ -53,7 +48,7 @@ class simulationReporters:
                 "totalSteps": None,
             },
             "log": {
-                "file": "output{}out".format(self.runID_str),
+                "file": "output{}out".format(runID_str),
                 "reportInterval": self.reportInterval,
                 "separator": ",",
                 "step": False,
@@ -71,19 +66,19 @@ class simulationReporters:
                 "barostat": None,
             },
             "dcd": {
-                "file": "trajectory{}dcd".format(self.runID_str),
+                "file": "trajectory{}dcd".format(runID_str),
                 "reportInterval": self.reportInterval,
                 "enforcePeriodicBox": True,
             },
             "xtc": {
-                "file": "trajectory{}xtc".format(self.runID_str),
+                "file": "trajectory{}xtc".format(runID_str),
                 "reportInterval": self.reportInterval,
                 "enforcePeriodicBox": True,
             },
             "restart": {
                 "reportInterval": 100000,
-                "xml": "restart{}xml".format(self.runID_str),
-                "chk": "restart{}chk".format(self.runID_str),
+                "xml": "restart{}xml".format(runID_str),
+                "chk": "restart{}chk".format(runID_str),
             },
         }
 
@@ -93,7 +88,7 @@ class simulationReporters:
             self.reporters["screen"]["progress"] = True
             self.reporters["screen"]["remainingTime"] = True
 
-        self.active_reporters = ["log"]
+        self.active_reporters = ["log", "xtc"]
 
         if configReporters is not None:
             for rep, val in configReporters.items():

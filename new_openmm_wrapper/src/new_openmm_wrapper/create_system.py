@@ -36,7 +36,8 @@ def extracParametersFF(myFF):
         myList.append("polarization")
         myList.append("mutualInducedTargetEpsilon")
     else:
-        myList.append("switchDistance")
+        if myFF["switchDistance"] is not None:
+            myList.append("switchDistance")
 
     if myFF["nonbondedMethod"] in [app.PME, app.Ewald, app.LJPME]:
         assert (
@@ -51,7 +52,19 @@ def extracParametersFF(myFF):
     else:
         raise Exception("Unknown nonbonded method")
 
-    return {x: myFF[x] for x in myList}
+    result = {x: myFF[x] for x in myList}
+
+    # OpenMM expects these as plain floats (in nm or dimensionless).
+    # Convert strings or integers when the value is not already an OpenMM Quantity.
+    _float_keys = {"nonbondedCutoff", "switchDistance", "ewaldErrorTolerance",
+                   "lj14Scale", "mutualInducedTargetEpsilon"}
+    for key in _float_keys:
+        if key in result and result[key] is not None:
+            import openmm.unit as unit
+            if not unit.is_quantity(result[key]):
+                result[key] = float(result[key])
+
+    return result
 
 
 def createSystem(setup):
@@ -135,9 +148,9 @@ def createSystem(setup):
 
     ##################################################
     # Change mixing rules of oplsAA forcefield is used
-    # if setup.config["forcefield"]["isOPLS"]:
-    #     my.pretty_log("Creating OPLS mixing rules", logger="debug")
-    #     my.OPLS_MixingRules(setup, system)
+    if setup.config["forcefield"]["isOPLS"]:
+        my.pretty_log("Creating OPLS mixing rules", logger="debug")
+        my.OPLS_MixingRules(setup, system)
 
     # Add restratints if required
     if setup.config["restraint"] is not None:
@@ -156,8 +169,10 @@ def createSystem(setup):
             exec(s, globals())
 
         for v in ["nonbondedCutoff", "switchDistance"]:
-            if v not in globals():
-                globals()[v] = setup.config["forcefield"][v]
+            if v not in globals() and setup.config["forcefield"][v] is not None:
+                val = setup.config["forcefield"][v]
+                import openmm.unit as unit
+                globals()[v] = val._value if unit.is_quantity(val) else float(val)
 
         if "customForceFieldParameters" in globals():
             # Get customForceFields from globals if it exists, otherwise None
@@ -252,7 +267,7 @@ def checkWaterNames(topology):
         if res.name in ["HOH", "WAT", "TIP3"]:
             expected_atom_names = ("O", "H1", "H2")
             actual_atom_names = tuple(atom.name for atom in res.atoms())
-            if actual_atom_names != expected_atom_names:
+            if actual_atom_names[0:3] != expected_atom_names:
                 logger.error(
                     f"Water residue '{res.name}' has unexpected atom names: {actual_atom_names}.\nExpected names are: {expected_atom_names}."
                 )

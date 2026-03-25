@@ -24,7 +24,7 @@ def initialiseMolecularDynamics(simulation, positions, config, seed=12345):
     else:
         if os.path.splitext(config["restartFrom"])[-1] == ".pdb":
             my.pretty_log(
-                f" Restarting simulation from positions only {config["restartFrom"]}",
+                f" Restarting simulation from positions only {config['restartFrom']}",
                 indent=1,
             )
             my.pretty_log(
@@ -34,21 +34,21 @@ def initialiseMolecularDynamics(simulation, positions, config, seed=12345):
 
         elif os.path.splitext(config["restartFrom"])[-1] == ".xml":
             my.pretty_log(
-                f" Restarting simulation from state file {config["restartFrom"]}",
+                f" Restarting simulation from state file {config['restartFrom']}",
                 indent=1,
             )
             simulation.loadState(config["restartFrom"])
 
         elif os.path.splitext(config["restartFrom"])[-1] == ".chk":
             my.pretty_log(
-                f" Restarting simulation from checkpoint {config["restartFrom"]}",
+                f" Restarting simulation from checkpoint {config['restartFrom']}",
                 indent=1,
             )
             simulation.loadCheckpoint(config["restartFrom"])
 
         else:
             my.pretty_log(
-                f"Unknown restart file type, us (xml, chk or pdb)", logger="error"
+                "Unknown restart file type, us (xml, chk or pdb)", logger="error"
             )
             sys.exit(1)
 
@@ -84,6 +84,7 @@ def molecular_dynamics(config):
         numberOfSteps=setup.config["md"].get("numberOfSteps", None),
         configReporters=setup.config.get("reporters", None),
     )
+    my.update_force_groups(simulation.context)
 
     # Add custom reporters here
     # - COM remover
@@ -92,12 +93,27 @@ def molecular_dynamics(config):
     # - test forces
     # - ...
 
+    if setup.config.get("osmotic"):
+        # At the moment this works only for one osmotic wall
+        simulation.reporters.append(
+            my.OsmoticPressureReporter(
+                setup.config["input"]["runID"],
+                "o",
+                setup.config.get("osmotic"),
+                setup.config["md"].get("temperature", 300),
+                modeller.topology,
+                simulation.context,
+            )
+        )
+
     initialiseMolecularDynamics(
         simulation,
         modeller.positions,
         setup.config["md"],
         seed=setup.rng.integers(low=1, high=99999, size=1)[0],
     )
+
+    my.computeEnergyFromContext(simulation.context)
 
     if config.get("metadynamics", None) is not None:
         my.pretty_log(title="Adding HILLS reporter")
@@ -144,3 +160,4 @@ def runMolecularDynamics(config, simulation):
             sep=True,
         )
         simulation.step(int(config["numberOfSteps"]))
+    simulation.saveState("finalState.xml")

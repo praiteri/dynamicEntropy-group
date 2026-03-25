@@ -115,6 +115,7 @@ def runMetadynamics(setup, MTD, simulation):
 
     MTD.step(simulation, setup.config["md"]["numberOfSteps"])
     np.save("freeEnergy", MTD.getFreeEnergy())
+    simulation.saveState("finalState.xml")
 
 
 def createPlumed(plumed_file, system):
